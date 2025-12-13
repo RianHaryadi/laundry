@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Coupon extends Model
 {
@@ -31,6 +32,9 @@ class Coupon extends Model
         'is_public',
         'first_order_only',
         'exclude_discounted_items',
+        // TAMBAHAN: Untuk membedakan coupon promo vs coupon reward member
+        'is_member_reward', // Apakah ini kupon reward untuk member
+        'outlet_id', // Jika kupon hanya berlaku untuk outlet tertentu
     ];
 
     /**
@@ -51,9 +55,12 @@ class Coupon extends Model
         'is_public' => 'boolean',
         'first_order_only' => 'boolean',
         'exclude_discounted_items' => 'boolean',
+        'is_member_reward' => 'boolean', // TAMBAHAN
     ];
 
-    
+    /**
+     * Relationships
+     */
 
     /**
      * Get the outlets that can use this coupon.
@@ -64,12 +71,24 @@ class Coupon extends Model
     }
 
     /**
+     * Get the outlet if coupon is specific to one outlet.
+     */
+    public function outlet(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Outlet::class);
+    }
+
+    /**
      * Get the orders that used this coupon.
      */
-    public function orders(): BelongsToMany
+    public function orders(): HasMany
     {
-        return $this->belongsToMany(Order::class, 'coupon_order');
+        return $this->hasMany(Order::class);
     }
+
+    /**
+     * Scopes
+     */
 
     /**
      * Scope a query to only include active coupons.
@@ -124,6 +143,37 @@ class Coupon extends Model
     {
         return $query->where('discount_type', $type);
     }
+
+    /**
+     * Scope for promotional coupons only (bukan reward member).
+     */
+    public function scopePromotional($query)
+    {
+        return $query->where('is_member_reward', false);
+    }
+
+    /**
+     * Scope for member reward coupons only.
+     */
+    public function scopeMemberReward($query)
+    {
+        return $query->where('is_member_reward', true);
+    }
+
+    /**
+     * Scope for coupons available at specific outlet.
+     */
+    public function scopeForOutlet($query, $outletId)
+    {
+        return $query->where(function ($q) use ($outletId) {
+            $q->whereNull('outlet_id') // Available at all outlets
+              ->orWhere('outlet_id', $outletId); // Specific to this outlet
+        });
+    }
+
+    /**
+     * Status Check Methods
+     */
 
     /**
      * Check if the coupon is currently active.
@@ -184,15 +234,46 @@ class Coupon extends Model
     }
 
     /**
+     * Check if this is a member reward coupon.
+     */
+    public function isMemberReward(): bool
+    {
+        return $this->is_member_reward === true;
+    }
+
+    /**
+     * Validation Methods
+     */
+
+    /**
      * Check if customer can use this coupon.
      */
-    public function canBeUsedByCustomer(int $customerId, float $orderAmount): array
+    public function canBeUsedByCustomer(int $customerId, float $orderAmount, int $outletId = null): array
     {
         // Check if coupon is active
         if (!$this->canBeUsed()) {
             return [
                 'valid' => false,
-                'message' => 'This coupon is not active or has expired.'
+                'message' => 'Kupon ini tidak aktif atau sudah kadaluarsa.'
+            ];
+        }
+
+        // Check if customer is member for member reward coupons
+        if ($this->is_member_reward) {
+            $customer = \App\Models\Customer::find($customerId);
+            if (!$customer || !$customer->isMember()) {
+                return [
+                    'valid' => false,
+                    'message' => 'Kupon ini hanya untuk member.'
+                ];
+            }
+        }
+
+        // Check outlet restriction
+        if ($this->outlet_id && $outletId && $this->outlet_id != $outletId) {
+            return [
+                'valid' => false,
+                'message' => 'Kupon ini tidak berlaku untuk outlet ini.'
             ];
         }
 
@@ -200,7 +281,7 @@ class Coupon extends Model
         if ($this->min_order && $orderAmount < $this->min_order) {
             return [
                 'valid' => false,
-                'message' => 'Minimum order amount is Rp ' . number_format($this->min_order, 0, ',', '.')
+                'message' => 'Minimum order adalah Rp ' . number_format($this->min_order, 0, ',', '.')
             ];
         }
 
@@ -213,14 +294,28 @@ class Coupon extends Model
             if ($userUsageCount >= $this->max_uses_per_user) {
                 return [
                     'valid' => false,
-                    'message' => 'You have reached the usage limit for this coupon.'
+                    'message' => 'Anda telah mencapai batas penggunaan kupon ini.'
+                ];
+            }
+        }
+
+        // Check first order only restriction
+        if ($this->first_order_only) {
+            $orderCount = \App\Models\Order::where('customer_id', $customerId)
+                ->where('status', '!=', 'cancelled')
+                ->count();
+            
+            if ($orderCount > 0) {
+                return [
+                    'valid' => false,
+                    'message' => 'Kupon ini hanya untuk order pertama.'
                 ];
             }
         }
 
         return [
             'valid' => true,
-            'message' => 'Coupon is valid!'
+            'message' => 'Kupon valid!'
         ];
     }
 
@@ -237,12 +332,12 @@ class Coupon extends Model
                 $discount = $this->max_discount;
             }
             
-            return $discount;
+            return round($discount, 2);
         }
 
         if ($this->discount_type === 'fixed') {
             // Fixed discount cannot exceed order amount
-            return min($this->discount_value, $orderAmount);
+            return round(min($this->discount_value, $orderAmount), 2);
         }
 
         if ($this->discount_type === 'free_shipping') {
@@ -253,6 +348,10 @@ class Coupon extends Model
     }
 
     /**
+     * Usage Tracking Methods
+     */
+
+    /**
      * Increment the usage count.
      */
     public function incrementUsage(): void
@@ -261,7 +360,7 @@ class Coupon extends Model
     }
 
     /**
-     * Decrement the usage count (for refunds).
+     * Decrement the usage count (for refunds/cancellations).
      */
     public function decrementUsage(): void
     {
@@ -271,6 +370,10 @@ class Coupon extends Model
     }
 
     /**
+     * Accessors
+     */
+
+    /**
      * Get the discount display text.
      */
     public function getDiscountDisplayAttribute(): string
@@ -278,7 +381,7 @@ class Coupon extends Model
         return match($this->discount_type) {
             'percentage' => $this->discount_value . '%',
             'fixed' => 'Rp ' . number_format($this->discount_value, 0, ',', '.'),
-            'free_shipping' => 'Free Shipping',
+            'free_shipping' => 'Gratis Ongkir',
             default => 'N/A',
         };
     }
@@ -289,18 +392,22 @@ class Coupon extends Model
     public function getStatusLabelAttribute(): string
     {
         if ($this->isExpired()) {
-            return 'Expired';
+            return 'Kadaluarsa';
         }
 
         if ($this->isScheduled()) {
-            return 'Scheduled';
+            return 'Terjadwal';
+        }
+
+        if ($this->isFullyUsed()) {
+            return 'Habis Digunakan';
         }
 
         if ($this->isActive()) {
-            return 'Active';
+            return 'Aktif';
         }
 
-        return 'Inactive';
+        return 'Tidak Aktif';
     }
 
     /**
@@ -309,12 +416,29 @@ class Coupon extends Model
     public function getStatusColorAttribute(): string
     {
         return match($this->status_label) {
-            'Active' => 'success',
-            'Scheduled' => 'warning',
-            'Expired' => 'danger',
-            'Inactive' => 'secondary',
+            'Aktif' => 'success',
+            'Terjadwal' => 'warning',
+            'Kadaluarsa' => 'danger',
+            'Habis Digunakan' => 'secondary',
+            'Tidak Aktif' => 'secondary',
             default => 'secondary',
         };
+    }
+
+    /**
+     * Get the coupon type label.
+     */
+    public function getTypeLabeAttribute(): string
+    {
+        return $this->is_member_reward ? 'Reward Member' : 'Promosi';
+    }
+
+    /**
+     * Get the coupon type color.
+     */
+    public function getTypeColorAttribute(): string
+    {
+        return $this->is_member_reward ? 'primary' : 'info';
     }
 
     /**
@@ -360,7 +484,7 @@ class Coupon extends Model
     public function getFormattedExpiryAttribute(): string
     {
         if (!$this->expires_at) {
-            return 'No expiration';
+            return 'Tidak ada batas waktu';
         }
 
         return $this->expires_at->format('d M Y, H:i');
@@ -372,5 +496,116 @@ class Coupon extends Model
     public function getExpiryHumanAttribute(): ?string
     {
         return $this->expires_at ? $this->expires_at->diffForHumans() : null;
+    }
+
+    /**
+     * Get formatted minimum order.
+     */
+    public function getFormattedMinOrderAttribute(): string
+    {
+        if (!$this->min_order) {
+            return 'Tidak ada minimum';
+        }
+
+        return 'Rp ' . number_format($this->min_order, 0, ',', '.');
+    }
+
+    /**
+     * Get formatted max discount.
+     */
+    public function getFormattedMaxDiscountAttribute(): string
+    {
+        if (!$this->max_discount) {
+            return 'Tidak ada batas';
+        }
+
+        return 'Rp ' . number_format($this->max_discount, 0, ',', '.');
+    }
+
+    /**
+     * Static Helper Methods
+     */
+
+    /**
+     * Find coupon by code.
+     */
+    public static function findByCode(string $code): ?self
+    {
+        return static::where('code', strtoupper($code))->first();
+    }
+
+    /**
+     * Validate and get coupon by code.
+     */
+    public static function validateCode(string $code, int $customerId, float $orderAmount, int $outletId = null): array
+    {
+        $coupon = static::findByCode($code);
+
+        if (!$coupon) {
+            return [
+                'valid' => false,
+                'message' => 'Kode kupon tidak ditemukan.',
+                'coupon' => null,
+            ];
+        }
+
+        $validation = $coupon->canBeUsedByCustomer($customerId, $orderAmount, $outletId);
+
+        return [
+            'valid' => $validation['valid'],
+            'message' => $validation['message'],
+            'coupon' => $validation['valid'] ? $coupon : null,
+            'discount' => $validation['valid'] ? $coupon->calculateDiscount($orderAmount) : 0,
+        ];
+    }
+
+    /**
+     * Get all active promotional coupons.
+     */
+    public static function getActivePromotions(int $outletId = null)
+    {
+        return static::active()
+            ->promotional()
+            ->public()
+            ->when($outletId, fn($q) => $q->forOutlet($outletId))
+            ->orderBy('discount_value', 'desc')
+            ->get();
+    }
+
+    /**
+     * Boot method
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Auto-generate coupon code if not provided
+        static::creating(function ($coupon) {
+            if (!$coupon->code) {
+                $coupon->code = static::generateUniqueCode();
+            } else {
+                // Ensure code is uppercase
+                $coupon->code = strtoupper($coupon->code);
+            }
+        });
+
+        // Ensure code is uppercase on update
+        static::updating(function ($coupon) {
+            if ($coupon->isDirty('code')) {
+                $coupon->code = strtoupper($coupon->code);
+            }
+        });
+    }
+
+    /**
+     * Generate unique coupon code.
+     */
+    private static function generateUniqueCode(int $length = 8): string
+    {
+        do {
+            $code = strtoupper(substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, $length));
+        } while (static::where('code', $code)->exists());
+
+        return $code;
     }
 }

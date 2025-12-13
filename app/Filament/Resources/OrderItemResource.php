@@ -12,7 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Notifications\Notification;
-
+use Illuminate\Database\Eloquent\Builder;
 class OrderItemResource extends Resource
 {
     protected static ?string $model = OrderItem::class;
@@ -140,6 +140,22 @@ class OrderItemResource extends Resource
                                 self::updateTotals($set, $get('quantity'), $get('price'));
                             }),
                     ])->columns(2),
+
+                    Forms\Components\Section::make('Additional Info')
+->schema([
+    Forms\Components\TextInput::make('storage_location')
+        ->label('Storage Location')
+        ->placeholder('Rak A1, Rak B2, dll.')
+        ->maxLength(255),
+
+    Forms\Components\FileUpload::make('photo_proof')
+        ->label('Photo Proof')
+        ->disk('public')
+        ->image()
+        ->multiple()
+
+    ])->columns(2),
+
             ]);
     }
 
@@ -163,10 +179,47 @@ class OrderItemResource extends Resource
                     ->color('primary'),
 
                 Tables\Columns\TextColumn::make('order.customer.name')
-                    ->label('Customer')
-                    ->searchable()
-                    ->sortable()
-                    ->placeholder('No Customer'),
+                ->label('Customer')
+                ->default(fn ($record): string => $record->order->guest_name ?? 'Guest')
+                ->sortable()
+                ->searchable(query: function (Builder $query, string $search): Builder {
+                    return $query->whereHas('order', function (Builder $q) use ($search) {
+                        $q->whereHas('customer', fn (Builder $subQ): Builder =>
+                            $subQ->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%")
+                                ->orWhere('phone', 'like', "%{$search}%")
+                        )
+                        ->orWhere('guest_name', 'like', "%{$search}%")
+                        ->orWhere('guest_phone', 'like', "%{$search}%");
+                    });
+                })
+                ->formatStateUsing(function ($record, $state): string {
+                    // Cek tipe customer dari order parent
+                    if ($record->order->customer_type === 'member' && $state) {
+                        return $state; // Tampilkan nama member
+                    }
+                    return $record->order->guest_name ?? 'Guest'; // Tampilkan nama guest
+                })
+                ->description(function ($record): ?string {
+                    // Tampilkan phone dan badge tipe customer
+                    $phone = $record->order->customer_type === 'member' 
+                        ? ($record->order->customer?->phone ?? 'No Phone')
+                        : ($record->order->guest_phone ?? 'No Phone');
+                    
+                    $type = $record->order->customer_type === 'member' ? '👤 Member' : '🚶 Walk-in';
+                    
+                    return "{$phone} • {$type}";
+                })
+                ->icon(fn ($record): string =>
+                    $record->order->customer_type === 'member' ? 'heroicon-o-user-circle' : 'heroicon-o-user'
+                )
+                ->iconColor(fn ($record): string =>
+                    $record->order->customer_type === 'member' ? 'warning' : 'gray'
+                )
+                ->tooltip(fn ($record): string =>
+                    $record->order->customer_type === 'member' ? '⭐ Member Customer' : '🚶 Guest Customer'
+                )
+                ->wrap(),
 
                 Tables\Columns\TextColumn::make('service.name')
                     ->label('Service')

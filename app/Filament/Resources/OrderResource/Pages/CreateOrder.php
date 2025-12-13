@@ -79,12 +79,14 @@ class CreateOrder extends CreateRecord
         $order = $this->record;
 
         // Send notification
-        Notification::make()
-            ->title('Order Created Successfully')
-            ->body("Order #{$order->id} for {$order->customer->name} has been created")
-            ->success()
-            ->duration(5000)
-            ->send();
+        $customerName = $order->customer ? $order->customer->name : 'Walk-In Customer';
+
+            Notification::make()
+                ->title('Order Created Successfully')
+                ->body("Order #{$order->id} for {$customerName} has been created")
+                ->success()
+                ->duration(5000)
+                ->send();
 
         // Additional notifications based on delivery method
         if (in_array($order->delivery_method, ['pickup', 'delivery', 'pickup_delivery'])) {

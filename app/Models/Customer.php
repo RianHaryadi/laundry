@@ -21,14 +21,14 @@ class Customer extends Model
         'email',
         'phone',
         'address',
-        'points',
-        'total_points_earned', // New field
-        'membership_level',
+        'is_member',
+        'available_coupons',
         'member_since',
         'birthday',
         'preferred_outlet_id',
         'email_notifications',
         'sms_notifications',
+        'is_member',
         'notes',
     ];
 
@@ -38,8 +38,8 @@ class Customer extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'points' => 'integer',
-        'total_points_earned' => 'integer', // New field
+        'is_member' => 'boolean',
+        'available_coupons' => 'integer',
         'member_since' => 'date',
         'birthday' => 'date',
         'email_notifications' => 'boolean',
@@ -63,27 +63,27 @@ class Customer extends Model
     }
 
     /**
-     * Scope a query to only include customers of a specific membership level.
+     * Scope a query to only include members.
      */
-    public function scopeOfMembershipLevel($query, string $level)
+    public function scopeMembers($query)
     {
-        return $query->where('membership_level', $level);
+        return $query->where('is_member', true);
     }
 
     /**
-     * Scope a query to only include VIP customers.
+     * Scope a query to only include non-members.
      */
-    public function scopeVip($query)
+    public function scopeNonMembers($query)
     {
-        return $query->where('membership_level', 'vip');
+        return $query->where('is_member', false);
     }
 
     /**
-     * Scope a query to only include customers with high points.
+     * Scope a query to only include customers with available coupons.
      */
-    public function scopeHighValue($query, int $minPoints = 1000)
+    public function scopeWithCoupons($query, int $minCoupons = 1)
     {
-        return $query->where('points', '>=', $minPoints);
+        return $query->where('available_coupons', '>=', $minCoupons);
     }
 
     /**
@@ -145,18 +145,11 @@ class Customer extends Model
     }
 
     /**
-     * Get the membership color for display.
+     * Get the membership status badge color.
      */
     public function getMembershipColorAttribute(): string
     {
-        return match ($this->membership_level) {
-            'bronze' => 'secondary',
-            'silver' => 'info',
-            'gold' => 'warning',
-            'platinum' => 'success',
-            'vip' => 'danger',
-            default => 'secondary',
-        };
+        return $this->is_member ? 'success' : 'secondary';
     }
 
     /**
@@ -164,7 +157,7 @@ class Customer extends Model
      */
     public function getMembershipLabelAttribute(): string
     {
-        return ucfirst($this->membership_level);
+        return $this->is_member ? 'Member' : 'Non-Member';
     }
 
     /**
@@ -201,177 +194,71 @@ class Customer extends Model
     }
 
     /**
-     * Check if customer is VIP.
+     * Check if customer is a member.
      */
-    public function isVip(): bool
+    public function isMember(): bool
     {
-        return $this->membership_level === 'vip';
+        return $this->is_member === true;
     }
 
     /**
-     * Check if customer is a high value customer.
+     * Check if customer has available coupons.
      */
-    public function isHighValue(int $minPoints = 1000): bool
+    public function hasCoupons(int $requiredCoupons = 1): bool
     {
-        return $this->points >= $minPoints;
+        return $this->available_coupons >= $requiredCoupons;
     }
 
     /**
-     * Check if customer has active membership (not bronze).
+     * Add coupon to member customer when order is completed.
+     * Only members receive coupons.
      */
-    public function hasActiveMembership(): bool
+    public function addCoupon(int $quantity = 1): bool
     {
-        return $this->membership_level && $this->membership_level !== 'bronze';
-    }
-
-    /**
-     * Get membership discount percentage.
-     */
-    public function getMembershipDiscount(): int
-    {
-        return match($this->membership_level) {
-            'vip' => 15,
-            'platinum' => 12,
-            'gold' => 10,
-            'silver' => 5,
-            default => 0,
-        };
-    }
-
-    /**
-     * Check if customer has free pickup/delivery benefit.
-     */
-    public function hasFreePickupDelivery(): bool
-    {
-        return in_array($this->membership_level, ['gold', 'platinum', 'vip']);
-    }
-
-    /**
-     * Add points to customer (for earning points from orders).
-     * This updates both current points and total points earned.
-     */
-    public function addPoints(int $points): void
-    {
-        $this->increment('points', $points);
-        $this->increment('total_points_earned', $points);
-        $this->updateMembershipLevel();
-    }
-
-    /**
-     * Redeem/deduct points from the customer (for using points as payment).
-     * Note: This only affects current points, not total_points_earned.
-     */
-    public function redeemPoints(int $points): bool
-    {
-        if ($this->points < $points) {
-            return false; // Not enough points
+        if (!$this->is_member) {
+            return false; // Non-members don't get coupons
         }
         
-        $this->decrement('points', $points);
-        // Note: total_points_earned stays the same!
+        $this->increment('available_coupons', $quantity);
         return true;
     }
 
     /**
-     * Deduct points from the customer (legacy method).
-     * @deprecated Use redeemPoints() instead for better semantics
+     * Use/redeem customer's coupon.
      */
-    public function deductPoints(int $points): void
+    public function useCoupon(int $quantity = 1): bool
     {
-        $newPoints = max(0, $this->points - $points);
-        $this->update(['points' => $newPoints]);
-    }
-
-    /**
-     * Auto-update membership level based on total_points_earned.
-     * This ensures membership is determined by lifetime earnings, not current balance.
-     */
-    public function updateMembershipLevel(): void
-    {
-        $totalPoints = $this->total_points_earned;
+        if ($this->available_coupons < $quantity) {
+            return false; // Not enough coupons
+        }
         
-        $newLevel = match (true) {
-            $totalPoints >= 4000 => 'vip',
-            $totalPoints >= 2000 => 'platinum',
-            $totalPoints >= 1000 => 'gold',
-            $totalPoints >= 500 => 'silver',
-            default => 'bronze',
-        };
+        $this->decrement('available_coupons', $quantity);
+        return true;
+    }
 
-        if ($this->membership_level !== $newLevel) {
-            $this->update(['membership_level' => $newLevel]);
+    /**
+     * Activate membership for customer.
+     */
+    public function activateMembership(): void
+    {
+        if (!$this->is_member) {
+            $this->update([
+                'is_member' => true,
+                'member_since' => now(),
+            ]);
         }
     }
 
     /**
-     * Automatically upgrade membership based on points.
-     * @deprecated Use updateMembershipLevel() instead
+     * Deactivate membership for customer.
      */
-    public function checkAndUpgradeMembership(): void
+    public function deactivateMembership(): void
     {
-        $this->updateMembershipLevel();
-    }
-
-    /**
-     * Get membership requirements based on total points earned.
-     */
-    public static function getMembershipRequirements(): array
-    {
-        return [
-            'bronze' => 0,
-            'silver' => 500,
-            'gold' => 1000,
-            'platinum' => 2000,
-            'vip' => 4000,
-        ];
-    }
-
-    /**
-     * Get points needed for next membership level.
-     */
-    public function getPointsToNextLevelAttribute(): ?int
-    {
-        $requirements = self::getMembershipRequirements();
-        $levels = array_keys($requirements);
-        $currentIndex = array_search($this->membership_level, $levels);
-
-        if ($currentIndex === false || $currentIndex === count($levels) - 1) {
-            return null; // Already at max level
-        }
-
-        $nextLevel = $levels[$currentIndex + 1];
-        $pointsNeeded = $requirements[$nextLevel] - $this->total_points_earned;
-
-        return max(0, $pointsNeeded);
-    }
-
-    /**
-     * Get the next membership level.
-     */
-    public function getNextMembershipLevelAttribute(): ?string
-    {
-        $levels = ['bronze', 'silver', 'gold', 'platinum', 'vip'];
-        $currentIndex = array_search($this->membership_level, $levels);
-
-        if ($currentIndex === false || $currentIndex === count($levels) - 1) {
-            return null; // Already at max level
-        }
-
-        return $levels[$currentIndex + 1];
-    }
-
-    /**
-     * Get membership tier label based on total points earned.
-     */
-    public function getMembershipTierAttribute(): string
-    {
-        return match (true) {
-            $this->total_points_earned >= 4000 => 'VIP',
-            $this->total_points_earned >= 2000 => 'Platinum',
-            $this->total_points_earned >= 1000 => 'Gold',
-            $this->total_points_earned >= 500 => 'Silver',
-            default => 'Bronze',
-        };
+        $this->update([
+            'is_member' => false,
+            'member_since' => null,
+            'available_coupons' => 0, // Reset coupons when membership is deactivated
+        ]);
     }
 
     /**
@@ -379,7 +266,7 @@ class Customer extends Model
      */
     public function getDisplayNameAttribute(): string
     {
-        return $this->name . ($this->isVip() ? ' 👑' : '');
+        return $this->name . ($this->is_member ? ' ⭐' : '');
     }
 
     /**
@@ -420,5 +307,13 @@ class Customer extends Model
     public function getMembershipDurationHumanAttribute(): ?string
     {
         return $this->member_since ? $this->member_since->diffForHumans(null, true) : null;
+    }
+
+    /**
+     * Get formatted coupon count for display.
+     */
+    public function getFormattedCouponsAttribute(): string
+    {
+        return $this->available_coupons . ' Kupon';
     }
 }

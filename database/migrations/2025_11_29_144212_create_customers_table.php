@@ -20,10 +20,10 @@ return new class extends Migration
             $table->string('email')->unique()->nullable();
             $table->text('address')->nullable();
             
-            // Membership & Loyalty
-            $table->integer('points')->default(0);
-            $table->enum('membership_level', ['bronze', 'silver', 'gold', 'platinum', 'vip'])->default('bronze');
+            // Membership Information
+            $table->boolean('is_member')->default(false);
             $table->date('member_since')->nullable();
+            $table->integer('available_coupons')->default(0); // Jumlah kupon yang dimiliki
             
             // Additional Information
             $table->date('birthday')->nullable();
@@ -39,9 +39,9 @@ return new class extends Migration
             $table->timestamps();
             
             // Indexes for better performance
-            $table->index('membership_level');
-            $table->index('points');
+            $table->index('is_member');
             $table->index('member_since');
+            $table->index('available_coupons');
         });
     }
 

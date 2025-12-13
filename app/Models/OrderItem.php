@@ -11,11 +11,17 @@ class OrderItem extends Model
 
     protected $guarded = [];
 
+    // ✅ PERBAIKAN: Tutup array $casts dengan benar
     protected $casts = [
         'weight'   => 'decimal:2',
         'price'    => 'decimal:2',
         'subtotal' => 'decimal:2',
         'quantity' => 'integer',
+        'price_per_kg' => 'decimal:2',
+        'price_per_unit' => 'decimal:2',
+        'pricing_type' => 'string',
+        'storage_location' => 'string',
+        'photo_proof' => 'array', // ✅ TAMBAHKAN => 'array' dan tutup dengan ];
     ];
 
     /**
@@ -46,7 +52,7 @@ class OrderItem extends Model
             
             // KASUS B: Jika inputnya QUANTITY (Qty diisi)
             elseif (!empty($item->quantity) && $item->quantity > 0) {
-                // Ambil harga dari kolom price_per_unit milik service
+                // Ambih harga dari kolom price_per_unit milik service
                 // Jika tidak ada, fallback ke base_price
                 $unitPrice = $service->price_per_unit ?? $service->base_price ?? 0;
                 

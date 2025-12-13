@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('password');
 
             // PERBAIKAN ENUM AGAR SESUAI DENGAN FILAMENT
-            $table->enum('role', ['owner', 'admin', 'cashier', 'courier'])->default('cashier');
+            $table->enum('role', ['owner', 'admin', 'staff', 'courier'])->default('staff');
 
             $table->unsignedBigInteger('outlet_id')->nullable();
             $table->string('phone')->nullable();

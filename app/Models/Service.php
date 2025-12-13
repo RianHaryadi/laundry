@@ -33,10 +33,11 @@ class Service extends Model
     /**
      * Get all orders using this service directly
      */
-    public function orders(): HasMany
-    {
-        return $this->hasMany(Order::class);
-    }
+    public function orders()
+{
+    return $this->belongsToMany(Order::class, 'order_items');
+}
+
 
     /**
      * Get all order items for this service

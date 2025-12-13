@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             
             // Foreign Keys
-            $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('customer_id')->nullable()->change();
             $table->foreignId('outlet_id')->constrained()->cascadeOnDelete();
             $table->foreignId('service_id')->constrained()->cascadeOnDelete();
             $table->foreignId('courier_id')->nullable()->constrained('users')->nullOnDelete();

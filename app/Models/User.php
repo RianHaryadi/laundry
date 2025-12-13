@@ -35,12 +35,10 @@ class User extends Authenticatable
         'is_active' => 'boolean',
     ];
 
-    /**
-     * Role constants.
-     */
+    // ========== ROLE CONSTANTS ==========
     public const ROLE_OWNER   = 'owner';
     public const ROLE_ADMIN   = 'admin';
-    public const ROLE_CASHIER = 'cashier';
+    public const ROLE_STAFF   = 'staff';
     public const ROLE_COURIER = 'courier';
 
     /**
@@ -51,11 +49,12 @@ class User extends Authenticatable
         return [
             self::ROLE_OWNER   => 'Owner',
             self::ROLE_ADMIN   => 'Admin/Administrator',
-            self::ROLE_CASHIER => 'Cashier',
+            self::ROLE_STAFF   => 'Staff',
             self::ROLE_COURIER => 'Courier',
         ];
     }
 
+    // ========== RELATIONSHIPS ==========
     public function outlet(): BelongsTo
     {
         return $this->belongsTo(Outlet::class);
@@ -76,11 +75,26 @@ class User extends Authenticatable
         return $this->hasMany(AuditLog::class);
     }
 
-    /** Role checking helpers */
-    public function isOwner(): bool   { return $this->role === self::ROLE_OWNER; }
-    public function isAdmin(): bool   { return $this->role === self::ROLE_ADMIN; }
-    public function isCashier(): bool { return $this->role === self::ROLE_CASHIER; }
-    public function isCourier(): bool { return $this->role === self::ROLE_COURIER; }
+    // ========== ROLE CHECKING HELPERS ==========
+    public function isOwner(): bool
+    {
+        return $this->role === self::ROLE_OWNER;
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === self::ROLE_ADMIN;
+    }
+
+    public function isStaff(): bool
+    {
+        return $this->role === self::ROLE_STAFF;
+    }
+
+    public function isCourier(): bool
+    {
+        return $this->role === self::ROLE_COURIER;
+    }
 
     /**
      * Universal role checker (supports old aliases)
@@ -90,10 +104,10 @@ class User extends Authenticatable
         $role = strtolower($role);
 
         $aliases = [
-            'superadmin'   => self::ROLE_OWNER,
-            'administrator'=> self::ROLE_ADMIN,
-            'kasir'        => self::ROLE_CASHIER,  // legacy
-            'kurir'        => self::ROLE_COURIER,  // legacy
+            'superadmin'    => self::ROLE_OWNER,
+            'administrator' => self::ROLE_ADMIN,
+            'kasir'         => self::ROLE_STAFF,  // legacy
+            'kurir'         => self::ROLE_COURIER, // legacy
         ];
 
         $finalRole = $aliases[$role] ?? $role;
@@ -114,9 +128,120 @@ class User extends Authenticatable
         return $this->isOwner() || $this->isAdmin();
     }
 
-    public function canManageUsers(): bool
+    // ========== FILAMENT PANEL ACCESS ==========
+    public function canAccessPanel($panel): bool
     {
-        return $this->isSuperAdmin();
+        // All active users can access Filament admin panel
+        return $this->is_active && in_array($this->role, [
+            self::ROLE_OWNER,
+            self::ROLE_ADMIN,
+            self::ROLE_STAFF,
+            self::ROLE_COURIER
+        ]);
+    }
+
+    // ========== NAVIGATION & MENU PERMISSIONS ==========
+    public function canAccessDashboard(): bool
+    {
+        return true; // All roles can access dashboard
+    }
+
+    // Machine Management
+    public function canAccessMachines(): bool
+    {
+        return $this->hasAnyRole(['owner', 'admin', 'staff']);
+    }
+
+    public function canManageMachines(): bool
+    {
+        return $this->hasAnyRole(['owner', 'admin']);
+    }
+
+    public function canAccessMaintenance(): bool
+    {
+        return $this->hasAnyRole(['owner', 'admin']);
+    }
+
+    // Order Management
+    public function canAccessOrders(): bool
+    {
+        return true; // All roles can access orders (with different permissions)
+    }
+
+    public function canManageOrders(): bool
+    {
+        return $this->hasAnyRole(['owner', 'admin', 'staff']);
+    }
+
+    public function canCreateOrders(): bool
+    {
+        return $this->hasAnyRole(['owner', 'admin', 'staff']);
+    }
+
+    public function canDeleteOrders(): bool
+    {
+        return $this->hasAnyRole(['owner', 'admin']);
+    }
+
+    public function canAccessOrderItems(): bool
+    {
+        return $this->hasAnyRole(['owner', 'admin', 'staff']);
+    }
+
+    public function canAccessTracking(): bool
+    {
+        return true; // All roles can access tracking
+    }
+
+    public function canManageTracking(): bool
+    {
+        return $this->hasAnyRole(['owner', 'admin', 'staff', 'courier']);
+    }
+
+    public function canAccessPayments(): bool
+    {
+        return $this->hasAnyRole(['owner', 'admin']);
+    }
+
+    public function canManagePayments(): bool
+    {
+        return $this->hasAnyRole(['owner', 'admin']);
+    }
+
+    // Management Section
+    public function canAccessServices(): bool
+    {
+        return true; // All can view services
+    }
+
+    public function canManageServices(): bool
+    {
+        return $this->hasAnyRole(['owner', 'admin']);
+    }
+
+    public function canAccessCoupons(): bool
+    {
+        return $this->hasAnyRole(['owner', 'admin']);
+    }
+
+    public function canManageCoupons(): bool
+    {
+        return $this->hasAnyRole(['owner', 'admin']);
+    }
+
+    public function canAccessCustomers(): bool
+    {
+        return $this->hasAnyRole(['owner', 'admin', 'staff']);
+    }
+
+    public function canManageCustomers(): bool
+    {
+        return $this->hasAnyRole(['owner', 'admin', 'staff']);
+    }
+
+    public function canAccessOutlets(): bool
+    {
+        return $this->isOwner();
     }
 
     public function canManageOutlets(): bool
@@ -124,6 +249,33 @@ class User extends Authenticatable
         return $this->isOwner();
     }
 
+    public function canAccessOutletPrices(): bool
+    {
+        return $this->isOwner();
+    }
+
+    public function canManageOutletPrices(): bool
+    {
+        return $this->isOwner();
+    }
+
+    public function canAccessUsers(): bool
+    {
+        return $this->isOwner();
+    }
+
+    public function canManageUsers(): bool
+    {
+        return $this->isOwner();
+    }
+
+    // System Section
+    public function canAccessAuditLogs(): bool
+    {
+        return $this->isOwner();
+    }
+
+    // ========== LEGACY PERMISSIONS (Backward Compatibility) ==========
     public function canManageProducts(): bool
     {
         return $this->isSuperAdmin();
@@ -131,7 +283,7 @@ class User extends Authenticatable
 
     public function canProcessOrders(): bool
     {
-        return $this->isOwner() || $this->isAdmin() || $this->isCashier();
+        return $this->isOwner() || $this->isAdmin() || $this->isStaff();
     }
 
     public function canDeliverOrders(): bool
@@ -139,11 +291,13 @@ class User extends Authenticatable
         return $this->isCourier();
     }
 
+    // ========== STATUS HELPERS ==========
     public function isActive(): bool
     {
         return $this->is_active;
     }
 
+    // ========== QUERY SCOPES ==========
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
@@ -164,9 +318,9 @@ class User extends Authenticatable
         return $query->where('role', self::ROLE_ADMIN);
     }
 
-    public function scopeCashiers($query)
+    public function scopeStaffs($query)
     {
-        return $query->where('role', self::ROLE_CASHIER);
+        return $query->where('role', self::ROLE_STAFF);
     }
 
     public function scopeCouriers($query)
@@ -179,6 +333,7 @@ class User extends Authenticatable
         return $query->where('outlet_id', $outletId);
     }
 
+    // ========== ATTRIBUTES ==========
     public function getRoleLabelAttribute(): string
     {
         return self::getRoles()[$this->role] ?? ucfirst($this->role);
@@ -189,7 +344,7 @@ class User extends Authenticatable
         return match ($this->role) {
             self::ROLE_OWNER   => 'danger',
             self::ROLE_ADMIN   => 'warning',
-            self::ROLE_CASHIER => 'info',
+            self::ROLE_STAFF   => 'info',
             self::ROLE_COURIER => 'success',
             default            => 'secondary',
         };
@@ -212,5 +367,32 @@ class User extends Authenticatable
         return $this->ordersAsCourier()
             ->whereIn('status', ['processing', 'delivering'])
             ->count();
+    }
+
+    // ========== OUTLET SCOPE HELPER ==========
+    /**
+     * Check if user can access data from specific outlet
+     */
+    public function canAccessOutletData(int $outletId): bool
+    {
+        // Owner can access all outlets
+        if ($this->isOwner()) {
+            return true;
+        }
+
+        // Others can only access their own outlet
+        return $this->outlet_id === $outletId;
+    }
+
+    /**
+     * Get outlets accessible by this user
+     */
+    public function getAccessibleOutlets()
+    {
+        if ($this->isOwner()) {
+            return Outlet::all();
+        }
+
+        return Outlet::where('id', $this->outlet_id)->get();
     }
 }

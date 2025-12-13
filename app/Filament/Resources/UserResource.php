@@ -64,12 +64,7 @@ class UserResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('role')
                             ->required()
-                            ->options([
-                                'owner' => 'Owner',
-                                'admin' => 'Administrator',
-                                'cashier' => 'Cashier',
-                                'courier' => 'Courier',
-                            ])
+                            ->options(User::getRoles())
                             ->native(false)
                             ->searchable()
                             ->placeholder('Select role'),
@@ -106,21 +101,25 @@ class UserResource extends Resource
                     ->tooltip('Click to copy'),
                 
                 Tables\Columns\BadgeColumn::make('role')
-                    ->colors([
-                        'danger' => 'admin',
-                        'warning' => 'manager',
-                        'success' => 'cashier',
-                        'primary' => 'staff',
-                    ])
-                    ->icons([
-                        'heroicon-o-shield-check' => 'admin',
-                        'heroicon-o-briefcase' => 'manager',
-                        'heroicon-o-calculator' => 'cashier',
-                        'heroicon-o-user' => 'staff',
-                    ])
+                    ->label('Role')
+                    ->formatStateUsing(fn($state) => User::getRoles()[$state] ?? ucfirst($state))
+                    ->color(fn($state) => match ($state) {
+                        User::ROLE_OWNER => 'danger',
+                        User::ROLE_ADMIN => 'warning',
+                        User::ROLE_STAFF => 'info',
+                        User::ROLE_COURIER => 'success',
+                        default => 'secondary',
+                    })
+                    ->icon(fn($state) => match ($state) {
+                        User::ROLE_OWNER => 'heroicon-o-shield-check',
+                        User::ROLE_ADMIN => 'heroicon-o-cog',
+                        User::ROLE_STAFF => 'heroicon-o-user',
+                        User::ROLE_COURIER => 'heroicon-o-truck',
+                        default => 'heroicon-o-question-mark-circle',
+                    })
                     ->sortable()
                     ->searchable(),
-                
+
                 Tables\Columns\TextColumn::make('outlet.name')
                     ->label('Outlet')
                     ->sortable()
@@ -144,16 +143,11 @@ class UserResource extends Resource
                     ->since(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('role')
-                    ->options([
-                        'owner' => 'Owner',
-                        'admin' => 'Administrator',
-                        'cashier' => 'Cashier',
-                        'courier' => 'Courier',
-                    ])
+               Tables\Filters\SelectFilter::make('role')
+                    ->options(User::getRoles())
                     ->multiple()
                     ->label('Filter by Role'),
-                
+
                 Tables\Filters\SelectFilter::make('outlet')
                     ->relationship('outlet', 'name')
                     ->searchable()

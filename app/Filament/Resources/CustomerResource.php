@@ -73,40 +73,22 @@ class CustomerResource extends Resource
                     ])
                     ->collapsible(),
 
-                Forms\Components\Section::make('Membership & Loyalty')
-                    ->schema([
-                        Forms\Components\Select::make('membership_level')
-                            ->label('Membership Level')
-                            ->options([
-                                'bronze' => 'Bronze',
-                                'silver' => 'Silver',
-                                'gold' => 'Gold',
-                                'platinum' => 'Platinum',
-                                'vip' => 'VIP',
-                            ])
-                            ->default('bronze')
-                            ->required()
-                            ->native(false)
-                            ->helperText('Membership tier based on spending or points'),
+                 Forms\Components\Section::make('Membership')
+            ->schema([
+                Forms\Components\Toggle::make('is_member')
+                    ->label('Is Member')
+                    ->default(false),
 
-                        Forms\Components\TextInput::make('points')
-                            ->label('Loyalty Points')
-                            ->required()
-                            ->numeric()
-                            ->default(0)
-                            ->minValue(0)
-                            ->step(10)
-                            ->suffix('pts')
-                            ->helperText('Current loyalty points balance'),
+                Forms\Components\TextInput::make('available_coupons')
+                    ->numeric()
+                    ->default(0)
+                    ->minValue(0),
 
-                        Forms\Components\DatePicker::make('member_since')
-                            ->label('Member Since')
-                            ->native(false)
-                            ->default(now())
-                            ->maxDate(now())
-                            ->helperText('Date when customer joined'),
-                    ])
-                    ->columns(3),
+                Forms\Components\DatePicker::make('member_since')
+                    ->native(false)
+                    ->maxDate(now()),
+            ])
+            ->columns(3),
 
                 Forms\Components\Section::make('Additional Information')
                     ->schema([
