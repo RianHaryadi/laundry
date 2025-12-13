@@ -518,8 +518,9 @@ class Order extends Model
         }
     });
 
-    // 2. Auto create payment
+    // 2. Auto create payment & tracking
     static::created(function ($order) {
+        // Create Payment Record
         $gateway = $order->payment_gateway ?? 'cash';
         $status = $order->payment_status ?? 'pending';
         $paymentStatus = match ($status) {
@@ -538,27 +539,68 @@ class Order extends Model
             'notes' => 'Auto-generated from Order creation',
         ]);
 
+        // Increment coupon usage
         if ($order->coupon_id) {
-            $coupon = Coupon::find($order->coupon_id);
+            $coupon = \App\Models\Coupon::find($order->coupon_id);
             if ($coupon) $coupon->incrementUsage();
+        }
+
+        // ✅ AUTO-CREATE TRACKING untuk pickup/delivery
+        if (in_array($order->delivery_method, ['pickup', 'delivery', 'pickup_delivery'])) {
+            $order->createInitialTracking();
         }
     });
 
     // 3. Recalculate price on change
     static::updating(function ($order) {
-
         if ($order->isDirty(['service_id', 'total_weight', 'service_speed', 'delivery_method', 'customer_id', 'coupon_id'])) {
             $order->calculatePrices();
         }
     });
 
-    // 4. Reward kupon ketika payment_status berubah jadi PAID
+    // 4. Handle tracking creation & reward after update
     static::updated(function ($order) {
-
+        // Sync payment status
         $order->syncPaymentStatus();
 
-        if ($order->wasChanged('payment_status') && $order->payment_status === 'paid') {
+        // ✅ CREATE TRACKING jika delivery_method berubah ke pickup/delivery
+        if ($order->wasChanged('delivery_method')) {
+            $needsTracking = in_array($order->delivery_method, ['pickup', 'delivery', 'pickup_delivery']);
+            $hadTracking = in_array($order->getOriginal('delivery_method'), ['pickup', 'delivery', 'pickup_delivery']);
+            
+            // Buat tracking baru jika berubah dari walk_in ke pickup/delivery
+            if ($needsTracking && !$hadTracking) {
+                $order->createInitialTracking();
+            }
+            
+            // Hapus tracking jika berubah ke walk_in (opsional)
+            if (!$needsTracking && $hadTracking) {
+                // Uncomment jika ingin auto-delete tracking saat ganti ke walk_in
+                // $order->trackings()->delete();
+                \Log::info("Order #{$order->id}: Changed to walk_in, tracking preserved");
+            }
+        }
 
+        // ✅ UPDATE TRACKING STATUS jika order status berubah
+        if ($order->wasChanged('status') && in_array($order->delivery_method, ['pickup', 'delivery', 'pickup_delivery'])) {
+            $trackingStatus = match($order->status) {
+                'confirmed' => 'pending',
+                'processing' => 'pending',
+                'ready' => 'picked_up',
+                'picked_up' => 'picked_up',
+                'in_delivery' => 'in_transit',
+                'completed' => 'delivered',
+                'cancelled' => 'failed',
+                default => null,
+            };
+
+            if ($trackingStatus) {
+                $order->updateTrackingStatus($trackingStatus);
+            }
+        }
+
+        // ✅ Reward kupon ketika payment_status berubah jadi PAID
+        if ($order->wasChanged('payment_status') && $order->payment_status === 'paid') {
             $customer = $order->customer;
             if (!$customer) return;
 
@@ -570,8 +612,7 @@ class Order extends Model
 
             // Jika sudah 6 → buat kupon gratis
             if ($customer->reward_points >= 6) {
-
-                Coupon::create([
+                \App\Models\Coupon::create([
                     'code' => 'FREE-' . strtoupper(uniqid()),
                     'customer_id' => $customer->id,
                     'discount_type' => 'percentage',
@@ -582,13 +623,104 @@ class Order extends Model
                 ]);
 
                 $customer->reward_points = 0;
+
+                // Send notification
+                \Filament\Notifications\Notification::make()
+                    ->success()
+                    ->title('🎉 Free Coupon Earned!')
+                    ->body("Customer {$customer->name} received a FREE service coupon!")
+                    ->send();
             }
 
             $customer->save();
 
-            // tandai sudah memberikan reward
+            // Tandai sudah memberikan reward
             $order->updateQuietly(['coupon_earned' => true]);
         }
     });
+
+    // 5. Clean up relations on delete (opsional)
+    static::deleting(function ($order) {
+        // Delete related trackings
+        $order->trackings()->delete();
+        
+        \Log::info("Order #{$order->id}: Deleted with all tracking records");
+    });
 }
+/**
+ * Create initial tracking record for pickup/delivery orders
+ */
+public function createInitialTracking(): void
+{
+    // Pastikan ada courier_id
+    if (!$this->courier_id) {
+        \Log::warning("Order #{$this->id}: Cannot create tracking without courier_id");
+        return;
+    }
+
+    // Cek apakah sudah ada tracking untuk order ini
+    if ($this->trackings()->exists()) {
+        \Log::info("Order #{$this->id}: Tracking already exists, skipping creation");
+        return;
+    }
+
+    // Tentukan initial status berdasarkan delivery method
+    $initialStatus = 'pending';
+    $notes = match($this->delivery_method) {
+        'pickup' => 'Waiting for pickup from customer',
+        'delivery' => 'Ready for delivery to customer',
+        'pickup_delivery' => 'Waiting for pickup, then delivery',
+        default => 'Order tracking initialized',
+    };
+
+    // Buat tracking record
+    try {
+        $tracking = $this->trackings()->create([
+            'courier_id' => $this->courier_id,
+            'status' => $initialStatus,
+            'latitude' => null,
+            'longitude' => null,
+            'notes' => $notes,
+        ]);
+
+        \Log::info("Order #{$this->id}: Tracking #{$tracking->id} created successfully with status '{$initialStatus}'");
+
+        // Send notification (opsional)
+        \Filament\Notifications\Notification::make()
+            ->success()
+            ->title('📍 Tracking Created')
+            ->body("Tracking record created for Order #{$this->formatted_id}")
+            ->send();
+
+    } catch (\Exception $e) {
+        \Log::error("Order #{$this->id}: Failed to create tracking - {$e->getMessage()}");
+    }
+}
+
+/**
+ * Update tracking status based on order status
+ */
+public function updateTrackingStatus(string $trackingStatus, ?string $notes = null): void
+{
+    $latestTracking = $this->trackings()->latest()->first();
+
+    if (!$latestTracking) {
+        \Log::warning("Order #{$this->id}: No tracking found to update");
+        return;
+    }
+
+    try {
+        $latestTracking->update([
+            'status' => $trackingStatus,
+            'notes' => $notes ?? "Order status changed to {$this->status}, tracking updated to {$trackingStatus}",
+            'updated_at' => now(),
+        ]);
+
+        \Log::info("Order #{$this->id}: Tracking #{$latestTracking->id} updated to '{$trackingStatus}'");
+
+    } catch (\Exception $e) {
+        \Log::error("Order #{$this->id}: Failed to update tracking - {$e->getMessage()}");
+    }
+}
+
 }

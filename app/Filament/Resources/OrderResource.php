@@ -266,13 +266,21 @@ class OrderResource extends Resource
                 ->dehydrated(fn (Get $get): bool => $get('customer_type') === self::CUSTOMER_TYPE_GUEST)
                 ->maxLength(500),
 
-            Select::make('outlet_id')
-                ->label('Outlet')
-                ->relationship('outlet', 'name')
-                ->searchable(['name', 'address'])
-                ->preload()
-                ->required()
-                ->columnSpanFull(),
+           Select::make('outlet_id')
+    ->label('Outlet')
+    ->relationship('outlet', 'name', function ($query) {
+        $user = auth()->user();
+        
+        // Jika bukan owner, hanya tampilkan outlet milik user tersebut
+        if ($user->role !== 'owner' && $user->outlet_id) {
+            $query->where('id', $user->outlet_id);
+        }
+        // Jika owner, tampilkan semua outlet (tidak perlu where)
+    })
+    ->searchable(['name', 'address'])
+    ->preload()
+    ->required()
+    ->columnSpanFull(),
         ])
         ->columns(2)
         ->collapsible();
@@ -450,37 +458,47 @@ class OrderResource extends Resource
     }
 
     protected static function getServiceOptionsSection(): Section
-    {
-        return Section::make('Service Options ⚡🚚')
-            ->schema([
-                Select::make('service_speed')
-                    ->label('Service Speed')
-                    ->options([
-                        'regular' => 'Regular (2–3 days)',
-                        'express' => 'Express (1 day) +50%',
-                        'same_day' => 'Same Day +100%',
-                    ])
-                    ->default('regular')
-                    ->live()
-                    ->required()
-                    ->afterStateUpdated(fn (Set $set, Get $get) => self::recalculatePricing($set, $get)),
+{
+    return Section::make('Service Options ⚡🚚')
+        ->schema([
+            Select::make('service_speed')
+                ->label('Service Speed')
+                ->options([
+                    'regular' => 'Regular (2–3 days)',
+                    'express' => 'Express (1 day) +50%',
+                    'same_day' => 'Same Day +100%',
+                ])
+                ->default('regular')
+                ->live()
+                ->required()
+                ->afterStateUpdated(fn (Set $set, Get $get) => self::recalculatePricing($set, $get)),
 
-                Select::make('delivery_method')
-                    ->label('Delivery Method')
-                    ->options([
-                        'walk_in' => 'Walk-in (Standard)',
-                        'pickup' => 'Pickup +20%',
-                        'delivery' => 'Delivery +20%',
-                        'pickup_delivery' => 'Both +40%',
-                    ])
-                    ->default('walk_in')
-                    ->live()
-                    ->required()
-                    ->afterStateUpdated(fn (Set $set, Get $get) => self::recalculatePricing($set, $get)),
-            ])
-            ->columns(2)
-            ->collapsible();
-    }
+            Select::make('delivery_method')
+                ->label('Delivery Method')
+                ->options([
+                    'walk_in' => 'Walk-in (Standard)',
+                    'pickup' => 'Pickup +20%',
+                    'delivery' => 'Delivery +20%',
+                    'pickup_delivery' => 'Both +40%',
+                ])
+                ->default('walk_in')
+                ->live()
+                ->required()
+                ->afterStateUpdated(function (Set $set, Get $get, $state) {
+                    self::recalculatePricing($set, $get);
+                    
+                    // Auto-show/hide courier section based on delivery method
+                    $needsCourier = in_array($state, ['pickup', 'delivery', 'pickup_delivery']);
+                    
+                    if (!$needsCourier) {
+                        $set('courier_id', null);
+                    }
+                })
+                ->helperText('Pickup/Delivery will create tracking record automatically'),
+        ])
+        ->columns(2)
+        ->collapsible();
+}
 
     protected static function getCouponSection(): Section
     {
@@ -635,33 +653,58 @@ class OrderResource extends Resource
     }
 
     protected static function getCourierSchedulingSection(): Section
-    {
-        return Section::make('Courier & Scheduling 📅')
-            ->schema([
-                Select::make('courier_id')
-                    ->label('Courier')
-                    ->relationship('courier', 'name')
-                    ->searchable()
-                    ->preload()
-                    ->visible(fn (Get $get): bool =>
-                        in_array($get('delivery_method'), ['pickup', 'delivery', 'pickup_delivery'], true)
-                    ),
+{
+    return Section::make('Courier & Scheduling 📅')
+        ->schema([
+            Placeholder::make('tracking_info')
+                ->label('📍 Tracking Notice')
+                ->content('A tracking record will be automatically created when you save this order with pickup/delivery method.')
+                ->visible(fn (Get $get): bool =>
+                    in_array($get('delivery_method'), ['pickup', 'delivery', 'pickup_delivery'], true)
+                )
+                ->columnSpanFull(),
 
-                DateTimePicker::make('pickup_time')
-                    ->label('Pickup Time')
-                    ->native(false)
-                    ->minDate(now())
-                    ->seconds(false),
+            Select::make('courier_id')
+                ->label('Courier')
+                ->relationship('courier', 'name', function ($query) {
+                    $user = auth()->user();
+                    
+                    // Filter courier berdasarkan outlet
+                    if ($user->role !== 'owner' && $user->outlet_id) {
+                        $query->where('outlet_id', $user->outlet_id);
+                    }
+                    
+                    // Hanya tampilkan user dengan role courier
+                    $query->where('role', 'courier');
+                })
+                ->searchable()
+                ->preload()
+                ->required(fn (Get $get): bool =>
+                    in_array($get('delivery_method'), ['pickup', 'delivery', 'pickup_delivery'], true)
+                )
+                ->visible(fn (Get $get): bool =>
+                    in_array($get('delivery_method'), ['pickup', 'delivery', 'pickup_delivery'], true)
+                )
+                ->helperText('Assign courier for pickup/delivery'),
 
-                DateTimePicker::make('delivery_time')
-                    ->label('Delivery/Completion Time')
-                    ->native(false)
-                    ->minDate(now())
-                    ->seconds(false),
-            ])
-            ->columns(3)
-            ->collapsible();
-    }
+            DateTimePicker::make('pickup_time')
+                ->label('Pickup Time')
+                ->native(false)
+                ->minDate(now())
+                ->seconds(false)
+                ->visible(fn (Get $get): bool =>
+                    in_array($get('delivery_method'), ['pickup', 'pickup_delivery'], true)
+                ),
+
+            DateTimePicker::make('delivery_time')
+                ->label('Delivery/Completion Time')
+                ->native(false)
+                ->minDate(now())
+                ->seconds(false),
+        ])
+        ->columns(3)
+        ->collapsible();
+}
 
     protected static function getAdditionalInfoSection(): Section
     {
