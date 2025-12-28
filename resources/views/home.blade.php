@@ -171,286 +171,593 @@
     </section>
 
     <!-- Services Section -->
-    <section id="services" class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold mb-4 text-gray-800">Our <span class="gradient-text">Premium</span> Services</h2>
-                <p class="text-gray-600 max-w-3xl mx-auto text-lg">We offer a wide range of laundry services tailored to meet your specific needs</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div class="service-card bg-white rounded-2xl overflow-hidden shadow-xl">
-                    <div class="h-56 bg-gradient-to-r from-blue-50 to-blue-100 flex items-center justify-center relative">
-                        <i class="fas fa-washing-machine text-blue-600 text-7xl"></i>
-                        <div class="absolute top-4 right-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">Most Popular</div>
-                    </div>
-                    <div class="p-8">
-                        <h3 class="text-2xl font-bold mb-3">Wash & Fold</h3>
-                        <p class="text-gray-600 mb-6">Professional washing, drying, and folding of your everyday clothes. We use eco-friendly detergents and fabric softeners.</p>
-                        <div class="flex justify-between items-center mb-6">
-                            <div>
-                                <span class="font-bold text-blue-600 text-2xl">$1.50</span>
-                                <span class="text-gray-600">/lb</span>
-                            </div>
-                            <div class="text-sm text-gray-500">Min. 5 lbs</div>
-                        </div>
-                        <button class="w-full btn-primary py-3.5 rounded-xl font-medium text-white">
-                            <i class="fas fa-shopping-cart mr-2"></i> Add Service
-                        </button>
+<section id="services" class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold mb-4 text-gray-800">Our <span class="gradient-text">Premium</span> Services</h2>
+            <p class="text-gray-600 max-w-3xl mx-auto text-lg">We offer a wide range of laundry services tailored to meet your specific needs</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Wash & Fold -->
+            <div class="service-card bg-white rounded-2xl overflow-hidden shadow-xl">
+                <div class="h-56 bg-gradient-to-r from-blue-50 to-blue-100 flex items-center justify-center relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-blue-600/10"></div>
+                    <i class="fas fa-washing-machine text-blue-600 text-7xl relative z-10 transform hover:scale-110 transition-transform duration-300"></i>
+                    <div class="absolute top-4 right-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg">
+                        <i class="fas fa-star mr-1"></i>Most Popular
                     </div>
                 </div>
-                <div class="service-card bg-white rounded-2xl overflow-hidden shadow-xl">
-                    <div class="h-56 bg-gradient-to-r from-green-50 to-green-100 flex items-center justify-center">
-                        <i class="fas fa-iron text-green-600 text-7xl"></i>
+                <div class="p-8">
+                    <h3 class="text-2xl font-bold mb-3 text-gray-800">Wash & Fold</h3>
+                    <p class="text-gray-600 mb-6 leading-relaxed">Professional washing, drying, and folding of your everyday clothes. We use eco-friendly detergents and fabric softeners.</p>
+                    
+                    <!-- Features List -->
+                    <ul class="mb-6 space-y-2">
+                        <li class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-blue-600 mr-2"></i>
+                            <span>Same-day service available</span>
+                        </li>
+                        <li class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-blue-600 mr-2"></i>
+                            <span>Eco-friendly products</span>
+                        </li>
+                        <li class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-blue-600 mr-2"></i>
+                            <span>Neatly folded & packaged</span>
+                        </li>
+                    </ul>
+                    
+                    <div class="flex justify-between items-center mb-6 p-4 bg-blue-50 rounded-xl">
+                        <div>
+                            <span class="font-bold text-blue-600 text-3xl">$1.50</span>
+                            <span class="text-gray-600 text-lg">/lb</span>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm font-medium text-gray-700">Minimum</div>
+                            <div class="text-sm text-gray-500">5 lbs</div>
+                        </div>
                     </div>
-                    <div class="p-8">
-                        <h3 class="text-2xl font-bold mb-3">Dry Cleaning</h3>
-                        <p class="text-gray-600 mb-6">Expert dry cleaning for your delicate and special occasion garments. We handle suits, dresses, and delicate fabrics with care.</p>
-                        <div class="flex justify-between items-center mb-6">
-                            <div>
-                                <span class="font-bold text-green-600 text-2xl">$5.99</span>
-                                <span class="text-gray-600">/item</span>
-                            </div>
+                    <button class="w-full btn-primary py-3.5 rounded-xl font-semibold text-white shadow-lg hover:shadow-xl transition-all">
+                        <i class="fas fa-shopping-cart mr-2"></i> Add Service
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dry Cleaning -->
+            <div class="service-card bg-white rounded-2xl overflow-hidden shadow-xl">
+                <div class="h-56 bg-gradient-to-r from-green-50 to-green-100 flex items-center justify-center relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-br from-green-400/10 to-green-600/10"></div>
+                    <i class="fas fa-tshirt text-green-600 text-7xl relative z-10 transform hover:scale-110 transition-transform duration-300"></i>
+                    <div class="absolute top-4 right-4 bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg">
+                        <i class="fas fa-leaf mr-1"></i>Premium
+                    </div>
+                </div>
+                <div class="p-8">
+                    <h3 class="text-2xl font-bold mb-3 text-gray-800">Dry Cleaning</h3>
+                    <p class="text-gray-600 mb-6 leading-relaxed">Expert dry cleaning for your delicate and special occasion garments. We handle suits, dresses, and delicate fabrics with care.</p>
+                    
+                    <!-- Features List -->
+                    <ul class="mb-6 space-y-2">
+                        <li class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                            <span>Professional pressing included</span>
+                        </li>
+                        <li class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                            <span>Stain treatment expertise</span>
+                        </li>
+                        <li class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                            <span>Garment protection bags</span>
+                        </li>
+                    </ul>
+                    
+                    <div class="flex justify-between items-center mb-6 p-4 bg-green-50 rounded-xl">
+                        <div>
+                            <span class="font-bold text-green-600 text-3xl">$5.99</span>
+                            <span class="text-gray-600 text-lg">/item</span>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm font-medium text-gray-700">Includes</div>
                             <div class="text-sm text-gray-500">Free Pressing</div>
                         </div>
-                        <button class="w-full btn-secondary py-3.5 rounded-xl font-medium">
-                            <i class="fas fa-info-circle mr-2"></i> Learn More
-                        </button>
+                    </div>
+                    <button class="w-full btn-primary py-3.5 rounded-xl font-semibold text-white shadow-lg hover:shadow-xl transition-all" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <i class="fas fa-shopping-cart mr-2"></i> Add Service
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bedding & Linens -->
+            <div class="service-card bg-white rounded-2xl overflow-hidden shadow-xl">
+                <div class="h-56 bg-gradient-to-r from-purple-50 to-purple-100 flex items-center justify-center relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-br from-purple-400/10 to-purple-600/10"></div>
+                    <i class="fas fa-bed text-purple-600 text-7xl relative z-10 transform hover:scale-110 transition-transform duration-300"></i>
+                    <div class="absolute top-4 right-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg">
+                        <i class="fas fa-home mr-1"></i>Home Care
                     </div>
                 </div>
-                <div class="service-card bg-white rounded-2xl overflow-hidden shadow-xl">
-                    <div class="h-56 bg-gradient-to-r from-purple-50 to-purple-100 flex items-center justify-center">
-                        <i class="fas fa-bed text-purple-600 text-7xl"></i>
-                    </div>
-                    <div class="p-8">
-                        <h3 class="text-2xl font-bold mb-3">Bedding & Linens</h3>
-                        <p class="text-gray-600 mb-6">Special care for your comforters, sheets, blankets, and other linens. Perfect for deep cleaning of larger items.</p>
-                        <div class="flex justify-between items-center mb-6">
-                            <div>
-                                <span class="font-bold text-purple-600 text-2xl">$12.99</span>
-                                <span class="text-gray-600">/item</span>
-                            </div>
-                            <div class="text-sm text-gray-500">King/Queen Size</div>
+                <div class="p-8">
+                    <h3 class="text-2xl font-bold mb-3 text-gray-800">Bedding & Linens</h3>
+                    <p class="text-gray-600 mb-6 leading-relaxed">Special care for your comforters, sheets, blankets, and other linens. Perfect for deep cleaning of larger items.</p>
+                    
+                    <!-- Features List -->
+                    <ul class="mb-6 space-y-2">
+                        <li class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-purple-600 mr-2"></i>
+                            <span>Deep cleaning process</span>
+                        </li>
+                        <li class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-purple-600 mr-2"></i>
+                            <span>Allergen removal treatment</span>
+                        </li>
+                        <li class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-purple-600 mr-2"></i>
+                            <span>Fresh & sanitized</span>
+                        </li>
+                    </ul>
+                    
+                    <div class="flex justify-between items-center mb-6 p-4 bg-purple-50 rounded-xl">
+                        <div>
+                            <span class="font-bold text-purple-600 text-3xl">$12.99</span>
+                            <span class="text-gray-600 text-lg">/item</span>
                         </div>
-                        <button class="w-full btn-secondary py-3.5 rounded-xl font-medium">
-                            <i class="fas fa-info-circle mr-2"></i> Learn More
-                        </button>
+                        <div class="text-right">
+                            <div class="text-sm font-medium text-gray-700">Size</div>
+                            <div class="text-sm text-gray-500">King/Queen</div>
+                        </div>
                     </div>
+                    <button class="w-full btn-primary py-3.5 rounded-xl font-semibold text-white shadow-lg hover:shadow-xl transition-all" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                        <i class="fas fa-shopping-cart mr-2"></i> Add Service
+                    </button>
                 </div>
             </div>
         </div>
-    </section>
+</section>
 
     <!-- Tracking Section -->
-    <section id="tracking" class="py-20 bg-gradient-to-br from-blue-50 to-indigo-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col lg:flex-row gap-12 items-center">
-                <div class="lg:w-1/2">
-                    <h2 class="text-4xl font-bold mb-6 text-gray-800">Real-Time <span class="gradient-text">Order Tracking</span></h2>
-                    <p class="text-gray-600 mb-8 text-lg">Track your laundry from pickup to delivery with our live tracking system. Get notifications at every step.</p>
-                    
-                    <div class="bg-white rounded-2xl p-8 shadow-xl mb-8">
-                        <div class="flex mb-6">
-                            <input type="text" placeholder="Enter your tracking number" class="flex-grow px-6 py-4 border border-gray-300 rounded-l-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <button class="btn-primary px-8 rounded-r-2xl font-medium text-white">
-                                <i class="fas fa-search mr-2"></i> Track
-                            </button>
-                        </div>
-                        <div class="text-center">
-                            <p class="text-gray-600">Example tracking number: <span class="font-mono font-bold text-blue-600">FC-789456123</span></p>
-                        </div>
+<section id="tracking" class="py-20 bg-gradient-to-br from-blue-50 to-indigo-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col lg:flex-row gap-12 items-center">
+            <div class="lg:w-1/2">
+                <h2 class="text-4xl font-bold mb-6 text-gray-800">Real-Time <span class="gradient-text">Order Tracking</span></h2>
+                <p class="text-gray-600 mb-8 text-lg">Track your laundry from pickup to delivery with our live tracking system. Get notifications at every step.</p>
+                
+                <div class="bg-white rounded-2xl p-8 shadow-xl mb-8">
+                    <div class="flex mb-6">
+                        <input type="text" id="trackingInput" placeholder="Enter your tracking number" class="flex-grow px-6 py-4 border border-gray-300 rounded-l-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <button onclick="trackOrder()" class="btn-primary px-8 rounded-r-2xl font-medium text-white">
+                            <i class="fas fa-search mr-2"></i> Track
+                        </button>
                     </div>
-                    
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="bg-white rounded-2xl p-6 shadow-lg">
-                            <div class="flex items-center mb-4">
-                                <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center mr-4">
-                                    <i class="fas fa-bell text-blue-600 text-xl"></i>
-                                </div>
-                                <h4 class="font-bold text-lg">Live Notifications</h4>
-                            </div>
-                            <p class="text-gray-600">Get real-time updates on your phone for every step of the process.</p>
-                        </div>
-                        <div class="bg-white rounded-2xl p-6 shadow-lg">
-                            <div class="flex items-center mb-4">
-                                <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center mr-4">
-                                    <i class="fas fa-map-marker-alt text-green-600 text-xl"></i>
-                                </div>
-                                <h4 class="font-bold text-lg">Driver Tracking</h4>
-                            </div>
-                            <p class="text-gray-600">See exactly where your laundry is with our live driver tracking.</p>
-                        </div>
+                    <div class="text-center">
+                        <p class="text-gray-600">Example tracking number: <span class="font-mono font-bold text-blue-600 cursor-pointer hover:underline" onclick="fillExample()">FC-789456123</span></p>
                     </div>
                 </div>
                 
-                <div class="lg:w-1/2 bg-white rounded-2xl p-8 shadow-2xl">
-                    <div class="flex justify-between items-center mb-8">
-                        <h3 class="text-2xl font-bold text-gray-800">Order #FC-789456123</h3>
-                        <span class="px-4 py-2 bg-blue-100 text-blue-600 rounded-full font-medium">In Progress</span>
-                    </div>
-                    
-                    <div class="space-y-8">
-                        <div class="tracking-step active">
-                            <h4 class="font-bold text-lg text-gray-800 mb-1">Order Received</h4>
-                            <p class="text-gray-600">Today, 10:30 AM</p>
-                            <p class="text-gray-500 text-sm mt-1">We've received your laundry order and it's being processed.</p>
-                        </div>
-                        
-                        <div class="tracking-step active">
-                            <h4 class="font-bold text-lg text-gray-800 mb-1">Processing</h4>
-                            <p class="text-gray-600">Today, 11:45 AM</p>
-                            <p class="text-gray-500 text-sm mt-1">Your clothes are being washed with eco-friendly detergents.</p>
-                        </div>
-                        
-                        <div class="tracking-step">
-                            <h4 class="font-bold text-lg text-gray-800 mb-1 text-opacity-70">Quality Check</h4>
-                            <p class="text-gray-600 text-opacity-70">Estimated: Today, 2:00 PM</p>
-                            <p class="text-gray-500 text-sm mt-1">Each item will be inspected for quality before packaging.</p>
-                        </div>
-                        
-                        <div class="tracking-step">
-                            <h4 class="font-bold text-lg text-gray-800 mb-1 text-opacity-70">Out for Delivery</h4>
-                            <p class="text-gray-600 text-opacity-70">Estimated: Today, 4:30 PM</p>
-                            <p class="text-gray-500 text-sm mt-1">Your clean laundry will be delivered to your doorstep.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-10 pt-8 border-t border-gray-200">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <p class="text-gray-600">Estimated Delivery</p>
-                                <p class="text-2xl font-bold text-gray-800">Today, 5:00 - 6:00 PM</p>
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="bg-white rounded-2xl p-6 shadow-lg">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center mr-4">
+                                <i class="fas fa-bell text-blue-600 text-xl"></i>
                             </div>
-                            <button class="btn-primary px-6 py-3 rounded-xl font-medium text-white">
-                                <i class="fas fa-phone-alt mr-2"></i> Contact Driver
-                            </button>
+                            <h4 class="font-bold text-lg">Live Notifications</h4>
                         </div>
+                        <p class="text-gray-600">Get real-time updates on your phone for every step of the process.</p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-6 shadow-lg">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center mr-4">
+                                <i class="fas fa-map-marker-alt text-green-600 text-xl"></i>
+                            </div>
+                            <h4 class="font-bold text-lg">Driver Tracking</h4>
+                        </div>
+                        <p class="text-gray-600">See exactly where your laundry is with our live driver tracking.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Initial State - Hidden -->
+            <div id="trackingPlaceholder" class="lg:w-1/2 bg-white rounded-2xl p-12 shadow-2xl text-center">
+                <div class="mb-6">
+                    <i class="fas fa-box-open text-gray-300 text-8xl mb-6"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">Enter Your Tracking Number</h3>
+                <p class="text-gray-600 text-lg mb-6">Track your order status in real-time by entering your tracking number above.</p>
+                <div class="flex items-center justify-center gap-4 text-gray-500">
+                    <div class="flex items-center">
+                        <i class="fas fa-shield-alt text-blue-600 mr-2"></i>
+                        <span class="text-sm">Secure</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-clock text-blue-600 mr-2"></i>
+                        <span class="text-sm">Real-time</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-mobile-alt text-blue-600 mr-2"></i>
+                        <span class="text-sm">Mobile Alerts</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tracking Result - Initially Hidden -->
+            <div id="trackingResult" class="lg:w-1/2 bg-white rounded-2xl p-8 shadow-2xl" style="display: none;">
+                <div class="flex justify-between items-center mb-8">
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-800">Order #<span id="orderNumber"></span></h3>
+                        <p class="text-gray-600 text-sm mt-1">Customer: <span class="font-medium">John Doe</span></p>
+                    </div>
+                    <div class="flex flex-col items-end gap-2">
+                        <span class="px-4 py-2 bg-blue-100 text-blue-600 rounded-full font-medium text-sm">In Progress</span>
+                        <button onclick="closeTracking()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="space-y-8">
+                    <div class="tracking-step completed">
+                        <h4 class="font-bold text-lg text-gray-800 mb-1">Order Received</h4>
+                        <p class="text-gray-600">Today, 10:30 AM</p>
+                        <p class="text-gray-500 text-sm mt-1">We've received your laundry order and it's being processed.</p>
+                    </div>
+                    
+                    <div class="tracking-step active">
+                        <h4 class="font-bold text-lg text-gray-800 mb-1">Processing</h4>
+                        <p class="text-gray-600">Today, 11:45 AM</p>
+                        <p class="text-gray-500 text-sm mt-1">Your clothes are being washed with eco-friendly detergents.</p>
+                    </div>
+                    
+                    <div class="tracking-step">
+                        <h4 class="font-bold text-lg text-gray-800 mb-1 opacity-70">Quality Check</h4>
+                        <p class="text-gray-600 opacity-70">Estimated: Today, 2:00 PM</p>
+                        <p class="text-gray-500 text-sm mt-1">Each item will be inspected for quality before packaging.</p>
+                    </div>
+                    
+                    <div class="tracking-step">
+                        <h4 class="font-bold text-lg text-gray-800 mb-1 opacity-70">Out for Delivery</h4>
+                        <p class="text-gray-600 opacity-70">Estimated: Today, 4:30 PM</p>
+                        <p class="text-gray-500 text-sm mt-1">Your clean laundry will be delivered to your doorstep.</p>
+                    </div>
+                </div>
+                
+                <div class="mt-10 pt-8 border-t border-gray-200">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <p class="text-gray-600">Estimated Delivery</p>
+                            <p class="text-2xl font-bold text-gray-800">Today, 5:00 - 6:00 PM</p>
+                        </div>
+                        <button class="btn-primary px-6 py-3 rounded-xl font-medium text-white whitespace-nowrap">
+                            <i class="fas fa-phone-alt mr-2"></i> Contact Driver
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
     <!-- Pricing Section -->
-    <section id="pricing" class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold mb-4 text-gray-800">Simple, <span class="gradient-text">Transparent</span> Pricing</h2>
-                <p class="text-gray-600 max-w-3xl mx-auto text-lg">Choose the plan that fits your needs. No hidden fees, no surprises.</p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                <div class="pricing-card bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
-                    <div class="text-center mb-8">
-                        <h3 class="text-2xl font-bold mb-2">Wash & Fold</h3>
-                        <p class="text-gray-600">Perfect for everyday laundry needs</p>
-                    </div>
-                    <div class="text-center mb-8">
-                        <span class="text-5xl font-bold text-gray-800">$1.50</span>
-                        <span class="text-gray-600 text-xl">/lb</span>
-                        <p class="text-gray-500 mt-2">5lb minimum</p>
-                    </div>
-                    <ul class="space-y-4 mb-10">
-                        <li class="flex items-center">
-                            <i class="fas fa-check-circle text-green-500 mr-3 text-lg"></i>
-                            <span>Next-day service</span>
-                        </li>
-                        <li class="flex items-center">
-                            <i class="fas fa-check-circle text-green-500 mr-3 text-lg"></i>
-                            <span>Free pickup & delivery</span>
-                        </li>
-                        <li class="flex items-center">
-                            <i class="fas fa-check-circle text-green-500 mr-3 text-lg"></i>
-                            <span>Eco-friendly detergents</span>
-                        </li>
-                    </ul>
-                    <button class="w-full btn-secondary py-4 rounded-xl font-medium text-lg">
-                        Get Started
-                    </button>
-                </div>
-                
-                <div class="pricing-card bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-2xl transform scale-105 relative p-8 text-white">
-                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-gray-800 px-6 py-2 rounded-full font-bold">
-                        MOST POPULAR
-                    </div>
-                    <div class="text-center mb-8 pt-4">
-                        <h3 class="text-2xl font-bold mb-2">Premium Bundle</h3>
-                        <p class="text-blue-100">Best value for regular customers</p>
-                    </div>
-                    <div class="text-center mb-8">
-                        <span class="text-5xl font-bold">$49</span>
-                        <span class="text-blue-100 text-xl">/month</span>
-                        <p class="text-blue-100 mt-2">Billed annually: $39/month</p>
-                    </div>
-                    <ul class="space-y-4 mb-10">
-                        <li class="flex items-center">
-                            <i class="fas fa-check-circle text-yellow-300 mr-3 text-lg"></i>
-                            <span>Up to 40lbs wash & fold</span>
-                        </li>
-                        <li class="flex items-center">
-                            <i class="fas fa-check-circle text-yellow-300 mr-3 text-lg"></i>
-                            <span>5 dry clean items included</span>
-                        </li>
-                        <li class="flex items-center">
-                            <i class="fas fa-check-circle text-yellow-300 mr-3 text-lg"></i>
-                            <span>Priority scheduling</span>
-                        </li>
-                        <li class="flex items-center">
-                            <i class="fas fa-check-circle text-yellow-300 mr-3 text-lg"></i>
-                            <span>Free stain treatment</span>
-                        </li>
-                        <li class="flex items-center">
-                            <i class="fas fa-check-circle text-yellow-300 mr-3 text-lg"></i>
-                            <span>Express 4-hour service</span>
-                        </li>
-                    </ul>
-                    <button class="w-full bg-white text-blue-600 hover:bg-gray-100 py-4 rounded-xl font-medium text-lg transition duration-300">
-                        Choose Plan
-                    </button>
-                </div>
-                
-                <div class="pricing-card bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
-                    <div class="text-center mb-8">
-                        <h3 class="text-2xl font-bold mb-2">Dry Cleaning</h3>
-                        <p class="text-gray-600">For your delicate and special garments</p>
-                    </div>
-                    <div class="text-center mb-8">
-                        <span class="text-5xl font-bold text-gray-800">$5.99</span>
-                        <span class="text-gray-600 text-xl">/item</span>
-                        <p class="text-gray-500 mt-2">Bulk discounts available</p>
-                    </div>
-                    <ul class="space-y-4 mb-10">
-                        <li class="flex items-center">
-                            <i class="fas fa-check-circle text-green-500 mr-3 text-lg"></i>
-                            <span>Professional dry cleaning</span>
-                        </li>
-                        <li class="flex items-center">
-                            <i class="fas fa-check-circle text-green-500 mr-3 text-lg"></i>
-                            <span>Free pressing & steaming</span>
-                        </li>
-                        <li class="flex items-center">
-                            <i class="fas fa-check-circle text-green-500 mr-3 text-lg"></i>
-                            <span>Eco-friendly solvents</span>
-                        </li>
-                        <li class="flex items-center">
-                            <i class="fas fa-check-circle text-green-500 mr-3 text-lg"></i>
-                            <span>Special garment storage</span>
-                        </li>
-                    </ul>
-                    <button class="w-full btn-secondary py-4 rounded-xl font-medium text-lg">
-                        Get Started
-                    </button>
-                </div>
-            </div>
-            
-            <div class="mt-16 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 text-center">
-                <h3 class="text-2xl font-bold mb-4 text-gray-800">Not sure which plan is right for you?</h3>
-                <p class="text-gray-600 mb-6 max-w-2xl mx-auto">Contact our team and we'll help you choose the perfect service based on your needs and budget.</p>
-                <button class="btn-primary px-8 py-3 rounded-xl font-medium text-white">
-                    <i class="fas fa-headset mr-2"></i> Talk to Our Team
+<section id="pricing" class="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold mb-4 text-gray-800">Affordable <span class="gradient-text">Pricing</span> for Everyone</h2>
+            <p class="text-gray-600 max-w-3xl mx-auto text-lg">Pay as you go with no commitment, or save more with our membership plans</p>
+        </div>
+
+        <!-- Toggle Switch -->
+        <div class="flex justify-center mb-12">
+            <div class="inline-flex items-center bg-white rounded-full p-2 shadow-lg">
+                <button onclick="switchPricing('payg')" id="paygBtn" class="pricing-toggle active px-8 py-3 rounded-full font-semibold transition-all">
+                    Pay as You Go
+                </button>
+                <button onclick="switchPricing('membership')" id="memberBtn" class="pricing-toggle px-8 py-3 rounded-full font-semibold transition-all">
+                    Membership Plans
+                    <span class="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Save 20%</span>
                 </button>
             </div>
         </div>
-    </section>
+
+        <!-- Pay as You Go Content -->
+        <div id="paygContent" class="pricing-content active">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <!-- Wash & Fold Card -->
+                <div class="pricing-card-modern group">
+                    <div class="icon-wrapper bg-gradient-to-br from-blue-400 to-blue-600">
+                        <i class="fas fa-tshirt text-white text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Wash & Fold</h3>
+                    <p class="text-gray-600 text-sm mb-4">Everyday laundry service</p>
+                    <div class="price-tag">
+                        <span class="text-4xl font-bold text-gray-800">Rp 7K</span>
+                        <span class="text-gray-600">/kg</span>
+                    </div>
+                    <p class="text-sm text-gray-500 mb-4">Min. 3kg</p>
+                    <ul class="space-y-2 mb-6 text-sm">
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-blue-600 mr-2 text-xs"></i>
+                            <span>24-48 jam selesai</span>
+                        </li>
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-blue-600 mr-2 text-xs"></i>
+                            <span>Wangi & bersih</span>
+                        </li>
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-blue-600 mr-2 text-xs"></i>
+                            <span>Dilipat rapi</span>
+                        </li>
+                    </ul>
+                    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition-all transform group-hover:scale-105">
+                        Pilih Layanan
+                    </button>
+                </div>
+
+                <!-- Dry Clean Card -->
+                <div class="pricing-card-modern group">
+                    <div class="icon-wrapper bg-gradient-to-br from-purple-400 to-purple-600">
+                        <i class="fas fa-spray-can text-white text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Dry Clean</h3>
+                    <p class="text-gray-600 text-sm mb-4">Pakaian formal & delicate</p>
+                    <div class="price-tag">
+                        <span class="text-4xl font-bold text-gray-800">Rp 25K</span>
+                        <span class="text-gray-600">/pcs</span>
+                    </div>
+                    <p class="text-sm text-gray-500 mb-4">Mulai dari</p>
+                    <ul class="space-y-2 mb-6 text-sm">
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-purple-600 mr-2 text-xs"></i>
+                            <span>Tanpa air</span>
+                        </li>
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-purple-600 mr-2 text-xs"></i>
+                            <span>Free pressing</span>
+                        </li>
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-purple-600 mr-2 text-xs"></i>
+                            <span>Aman untuk bahan sensitif</span>
+                        </li>
+                    </ul>
+                    <button class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-semibold transition-all transform group-hover:scale-105">
+                        Pilih Layanan
+                    </button>
+                </div>
+
+                <!-- Express Card -->
+                <div class="pricing-card-modern group">
+                    <div class="icon-wrapper bg-gradient-to-br from-orange-400 to-orange-600">
+                        <i class="fas fa-bolt text-white text-3xl"></i>
+                    </div>
+                    <div class="absolute top-4 right-4 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                        CEPAT
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Express 6 Jam</h3>
+                    <p class="text-gray-600 text-sm mb-4">Butuh cepat? Kami siap!</p>
+                    <div class="price-tag">
+                        <span class="text-4xl font-bold text-gray-800">Rp 12K</span>
+                        <span class="text-gray-600">/kg</span>
+                    </div>
+                    <p class="text-sm text-gray-500 mb-4">Min. 3kg</p>
+                    <ul class="space-y-2 mb-6 text-sm">
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-orange-600 mr-2 text-xs"></i>
+                            <span>Selesai 6 jam</span>
+                        </li>
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-orange-600 mr-2 text-xs"></i>
+                            <span>Prioritas tinggi</span>
+                        </li>
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-orange-600 mr-2 text-xs"></i>
+                            <span>Same-day delivery</span>
+                        </li>
+                    </ul>
+                    <button class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-semibold transition-all transform group-hover:scale-105">
+                        Pilih Layanan
+                    </button>
+                </div>
+
+                <!-- Premium Care Card -->
+                <div class="pricing-card-modern group">
+                    <div class="icon-wrapper bg-gradient-to-br from-pink-400 to-pink-600">
+                        <i class="fas fa-gem text-white text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Premium Care</h3>
+                    <p class="text-gray-600 text-sm mb-4">Sepatu, tas & bedding</p>
+                    <div class="price-tag">
+                        <span class="text-4xl font-bold text-gray-800">Rp 35K</span>
+                        <span class="text-gray-600">/pcs</span>
+                    </div>
+                    <p class="text-sm text-gray-500 mb-4">Mulai dari</p>
+                    <ul class="space-y-2 mb-6 text-sm">
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-pink-600 mr-2 text-xs"></i>
+                            <span>Deep cleaning</span>
+                        </li>
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-pink-600 mr-2 text-xs"></i>
+                            <span>Perawatan khusus</span>
+                        </li>
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-pink-600 mr-2 text-xs"></i>
+                            <span>Treatment profesional</span>
+                        </li>
+                    </ul>
+                    <button class="w-full bg-pink-600 hover:bg-pink-700 text-white py-3 rounded-xl font-semibold transition-all transform group-hover:scale-105">
+                        Pilih Layanan
+                    </button>
+                </div>
+            </div>
+
+            <!-- Additional Services -->
+            <div class="bg-white rounded-2xl p-8 shadow-lg">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Layanan Tambahan</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="flex items-center p-4 bg-gray-50 rounded-xl">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-map-marker-alt text-blue-600"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-800">Antar Jemput</h4>
+                            <p class="text-sm text-gray-600">Gratis radius 5km</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center p-4 bg-gray-50 rounded-xl">
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-shield-alt text-green-600"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-800">Garansi 100%</h4>
+                            <p class="text-sm text-gray-600">Puas atau uang kembali</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center p-4 bg-gray-50 rounded-xl">
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-star text-purple-600"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-800">Poin Reward</h4>
+                            <p class="text-sm text-gray-600">Setiap transaksi dapat poin</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Membership Plans Content -->
+        <div id="memberContent" class="pricing-content">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <!-- Basic Plan -->
+                <div class="membership-card">
+                    <div class="p-8">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">Basic</h3>
+                        <p class="text-gray-600 mb-6">Untuk pengguna reguler</p>
+                        <div class="mb-6">
+                            <span class="text-5xl font-bold text-gray-800">Rp 199K</span>
+                            <span class="text-gray-600">/bulan</span>
+                        </div>
+                        <div class="bg-blue-50 rounded-xl p-4 mb-6">
+                            <p class="text-sm text-blue-800 font-semibold">Hemat Rp 70K per bulan!</p>
+                        </div>
+                        <ul class="space-y-3 mb-8">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-blue-600 mr-3 mt-1"></i>
+                                <span class="text-gray-700">20kg Wash & Fold</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-blue-600 mr-3 mt-1"></i>
+                                <span class="text-gray-700">Gratis antar jemput unlimited</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-blue-600 mr-3 mt-1"></i>
+                                <span class="text-gray-700">Diskon 10% layanan lain</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-blue-600 mr-3 mt-1"></i>
+                                <span class="text-gray-700">Priority customer service</span>
+                            </li>
+                        </ul>
+                        <button class="w-full bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white py-4 rounded-xl font-semibold transition-all">
+                            Pilih Paket
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Premium Plan - Featured -->
+                <div class="membership-card featured">
+                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-6 py-2 rounded-full font-bold text-sm shadow-lg">
+                        PALING POPULER
+                    </div>
+                    <div class="p-8">
+                        <h3 class="text-2xl font-bold text-white mb-2">Premium</h3>
+                        <p class="text-blue-100 mb-6">Best value for families</p>
+                        <div class="mb-6">
+                            <span class="text-5xl font-bold text-white">Rp 349K</span>
+                            <span class="text-blue-100">/bulan</span>
+                        </div>
+                        <div class="bg-white/20 backdrop-blur rounded-xl p-4 mb-6">
+                            <p class="text-sm text-white font-semibold">Hemat Rp 150K per bulan!</p>
+                        </div>
+                        <ul class="space-y-3 mb-8">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-yellow-300 mr-3 mt-1"></i>
+                                <span class="text-white">40kg Wash & Fold</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-yellow-300 mr-3 mt-1"></i>
+                                <span class="text-white">5 Dry Clean items gratis</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-yellow-300 mr-3 mt-1"></i>
+                                <span class="text-white">Express service 2x gratis</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-yellow-300 mr-3 mt-1"></i>
+                                <span class="text-white">Diskon 20% layanan lain</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-yellow-300 mr-3 mt-1"></i>
+                                <span class="text-white">Priority scheduling</span>
+                            </li>
+                        </ul>
+                        <button class="w-full bg-white text-blue-600 hover:bg-gray-100 py-4 rounded-xl font-semibold transition-all transform hover:scale-105">
+                            Pilih Paket
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Business Plan -->
+                <div class="membership-card">
+                    <div class="p-8">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">Business</h3>
+                        <p class="text-gray-600 mb-6">Untuk bisnis & kos-kosan</p>
+                        <div class="mb-6">
+                            <span class="text-5xl font-bold text-gray-800">Rp 599K</span>
+                            <span class="text-gray-600">/bulan</span>
+                        </div>
+                        <div class="bg-purple-50 rounded-xl p-4 mb-6">
+                            <p class="text-sm text-purple-800 font-semibold">Hemat Rp 250K per bulan!</p>
+                        </div>
+                        <ul class="space-y-3 mb-8">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-purple-600 mr-3 mt-1"></i>
+                                <span class="text-gray-700">80kg Wash & Fold</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-purple-600 mr-3 mt-1"></i>
+                                <span class="text-gray-700">10 Dry Clean items gratis</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-purple-600 mr-3 mt-1"></i>
+                                <span class="text-gray-700">Unlimited express service</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-purple-600 mr-3 mt-1"></i>
+                                <span class="text-gray-700">Dedicated account manager</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-purple-600 mr-3 mt-1"></i>
+                                <span class="text-gray-700">Invoice bulanan</span>
+                            </li>
+                        </ul>
+                        <button class="w-full bg-white border-2 border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white py-4 rounded-xl font-semibold transition-all">
+                            Pilih Paket
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA Section -->
+        <div class="mt-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-10 text-white text-center shadow-2xl">
+            <h3 class="text-3xl font-bold mb-4">Masih bingung pilih yang mana?</h3>
+            <p class="text-lg mb-6 opacity-90 max-w-2xl mx-auto">Chat dengan tim kami dan dapatkan rekomendasi paket yang paling sesuai dengan kebutuhan Anda</p>
+            <button class="inline-flex items-center px-8 py-4 bg-white text-blue-600 rounded-full font-semibold hover:shadow-lg transition-all hover:scale-105">
+                <i class="fab fa-whatsapp mr-2 text-xl"></i> Chat di WhatsApp
+            </button>
+        </div>
+    </div>
+</section>
 
     <!-- Testimonials -->
     <section id="testimonials" class="py-20 bg-gray-50">
@@ -672,9 +979,11 @@
         border: 1px solid rgba(255, 255, 255, 0.2);
     }
     
+    /* Tracking Step Styles - Updated */
     .tracking-step {
         position: relative;
-        padding-left: 30px;
+        padding-left: 40px;
+        transition: all 0.3s ease;
     }
     
     .tracking-step::before {
@@ -682,19 +991,66 @@
         position: absolute;
         left: 0;
         top: 5px;
-        width: 20px;
-        height: 20px;
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
         background-color: #e5e7eb;
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 2px #e5e7eb;
+        transition: all 0.3s ease;
+    }
+    
+    .tracking-step::after {
+        content: '';
+        position: absolute;
+        left: 11px;
+        top: 29px;
+        width: 2px;
+        height: calc(100% + 20px);
+        background-color: #e5e7eb;
+    }
+    
+    .tracking-step:last-child::after {
+        display: none;
     }
     
     .tracking-step.active::before {
         background-color: var(--primary);
-        box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.2);
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2), 0 0 0 5px rgba(59, 130, 246, 0.1);
+        animation: pulse 2s ease-in-out infinite;
     }
     
     .tracking-step.completed::before {
         background-color: var(--accent);
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+    
+    .tracking-step.completed::after {
+        background-color: var(--accent);
+    }
+    
+    @keyframes pulse {
+        0%, 100% {
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2), 0 0 0 5px rgba(59, 130, 246, 0.1);
+        }
+        50% {
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3), 0 0 0 8px rgba(59, 130, 246, 0.15);
+        }
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    .slide-in {
+        animation: slideIn 0.5s ease-out;
     }
     
     .testimonial-card {
@@ -856,6 +1212,79 @@
         transform: scaleX(1);
     }
     
+    /* Pricing Section Styles */
+    .pricing-toggle {
+        color: #6b7280;
+        transition: all 0.3s ease;
+    }
+    
+    .pricing-toggle.active {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    }
+    
+    .pricing-content {
+        display: none;
+        animation: fadeIn 0.5s ease-in;
+    }
+    
+    .pricing-content.active {
+        display: block;
+    }
+    
+    .pricing-card-modern {
+        background: white;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .pricing-card-modern:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    .icon-wrapper {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .price-tag {
+        margin: 16px 0;
+    }
+    
+    .membership-card {
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .membership-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    }
+    
+    .membership-card.featured {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        transform: scale(1.05);
+    }
+    
+    .membership-card.featured:hover {
+        transform: scale(1.08) translateY(-8px);
+    }
+    
     @media (max-width: 768px) {
         .hero-image {
             width: 70%;
@@ -867,7 +1296,6 @@
     }
 </style>
 @endpush
-
 @push('scripts')
 <script>
     // FAB click handler
@@ -948,6 +1376,76 @@
             pickupContent.classList.remove('active');
         }
     }
+    
+    // Pricing toggle function
+    function switchPricing(type) {
+        const paygBtn = document.getElementById('paygBtn');
+        const memberBtn = document.getElementById('memberBtn');
+        const paygContent = document.getElementById('paygContent');
+        const memberContent = document.getElementById('memberContent');
+        
+        if (type === 'payg') {
+            paygBtn.classList.add('active');
+            memberBtn.classList.remove('active');
+            paygContent.classList.add('active');
+            memberContent.classList.remove('active');
+        } else {
+            memberBtn.classList.add('active');
+            paygBtn.classList.remove('active');
+            memberContent.classList.add('active');
+            paygContent.classList.remove('active');
+        }
+    }
+    
+    // Tracking Order Functions
+    function trackOrder() {
+        const trackingNumber = document.getElementById('trackingInput').value.trim();
+        
+        if (!trackingNumber) {
+            alert('Please enter a tracking number');
+            return;
+        }
+        
+        // Validate format (simple validation)
+        if (!trackingNumber.match(/^[A-Z]{2}-\d{9}$/i)) {
+            alert('Invalid tracking number format. Please use format: XX-123456789');
+            return;
+        }
+        
+        // Hide placeholder, show result
+        document.getElementById('trackingPlaceholder').style.display = 'none';
+        const resultDiv = document.getElementById('trackingResult');
+        resultDiv.style.display = 'block';
+        resultDiv.classList.add('slide-in');
+        
+        // Update order number
+        document.getElementById('orderNumber').textContent = trackingNumber.toUpperCase();
+        
+        // Scroll to result (optional)
+        resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
+    function closeTracking() {
+        document.getElementById('trackingResult').style.display = 'none';
+        document.getElementById('trackingPlaceholder').style.display = 'block';
+        document.getElementById('trackingInput').value = '';
+    }
+    
+    function fillExample() {
+        document.getElementById('trackingInput').value = 'FC-789456123';
+    }
+    
+    // Allow Enter key to submit tracking
+    document.addEventListener('DOMContentLoaded', function() {
+        const trackingInput = document.getElementById('trackingInput');
+        if (trackingInput) {
+            trackingInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    trackOrder();
+                }
+            });
+        }
+    });
     
     // Smooth scrolling for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
