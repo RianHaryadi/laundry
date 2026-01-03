@@ -23,7 +23,7 @@ class RevenueReport extends Page
     
     public function getStats(): array
     {
-        $query = Payment::where('status', 'paid');
+        $query = Payment::where('status', 'success');
         
         // Apply date filter
         $query = $this->applyDateFilter($query);
@@ -33,7 +33,7 @@ class RevenueReport extends Page
         $avgTransaction = $totalTransactions > 0 ? $totalRevenue / $totalTransactions : 0;
         
         // Calculate growth (compare with previous period)
-        $previousQuery = Payment::where('status', 'paid');
+        $previousQuery = Payment::where('status', 'success');
         $previousQuery = $this->applyPreviousDateFilter($previousQuery);
         $previousRevenue = $previousQuery->sum('amount');
         
@@ -51,9 +51,10 @@ class RevenueReport extends Page
     
     public function getRevenueByService(): array
     {
-        $query = Payment::where('status', 'paid')
+        $query = Payment::where('payments.status', 'success')
             ->join('orders', 'payments.order_id', '=', 'orders.id')
-            ->join('services', 'orders.service_id', '=', 'services.id')
+            ->join('order_items', 'orders.id', '=', 'order_items.order_id')
+            ->join('services', 'order_items.service_id', '=', 'services.id')
             ->select('services.name', DB::raw('SUM(payments.amount) as total'))
             ->groupBy('services.name');
         
@@ -64,9 +65,9 @@ class RevenueReport extends Page
     
     public function getRevenueByPaymentMethod(): array
     {
-        $query = Payment::where('status', 'paid')
-            ->select('payment_method', DB::raw('SUM(amount) as total'))
-            ->groupBy('payment_method');
+        $query = Payment::where('status', 'success')
+            ->select('gateway as payment_method', DB::raw('SUM(amount) as total'))
+            ->groupBy('gateway');
         
         $query = $this->applyDateFilter($query);
         

@@ -377,85 +377,89 @@ class OrderResource extends Resource
             ->collapsible();
     }
 
-    protected static function getOrderItemsRepeater(): Repeater
-    {
-        return Repeater::make('order_items')
-            ->label('Services 🧺')
-            ->relationship('orderItems')
-            ->live()
-            ->schema([
-                Select::make('service_id')
-                    ->label('Service Type')
-                    ->relationship('service', 'name')
-                    ->searchable()
-                    ->preload()
-                    ->required()
-                    ->live()
-                    ->afterStateUpdated(function (Set $set, Get $get, $state) {
-                        if (!$state) return;
-                        
-                        $service = Service::find($state);
-                        if (!$service) return;
+   protected static function getOrderItemsRepeater(): Repeater
+{
+    return Repeater::make('order_items')
+        ->label('Services 🧺')
+        ->relationship('orderItems')
+        ->live()
+        ->schema([
+            Select::make('service_id')
+                ->label('Service Type')
+                ->relationship('service', 'name')
+                ->searchable()
+                ->preload()
+                ->required()
+                ->live()
+                ->afterStateUpdated(function (Set $set, Get $get, $state) {
+                    if (!$state) return;
+                    
+                    $service = Service::find($state);
+                    if (!$service) return;
 
-                        self::applyServiceDefaults($set, $service);
-                        self::recalculatePricing($set, $get);
-                    })
-                    ->columnSpan(2),
+                    self::applyServiceDefaults($set, $service);
+                    
+                    // Force recalculate setelah service dipilih
+                    $set('weight', null);
+                    $set('quantity', null);
+                    $set('subtotal', 0);
+                    
+                    self::recalculatePricing($set, $get);
+                })
+                ->columnSpan(2),
 
-                Hidden::make('pricing_type'),
-                Hidden::make('price_per_kg'),
-                Hidden::make('price_per_unit'),
+            // Hidden fields
+            Hidden::make('pricing_type')->dehydrated(),
+            Hidden::make('price_per_kg')->dehydrated(),
+            Hidden::make('price_per_unit')->dehydrated(),
+            Hidden::make('price')->default(0)->dehydrated(),
+            Hidden::make('subtotal')->default(0)->dehydrated(),
 
-                TextInput::make('weight')
-                    ->label('Weight (KG)')
-                    ->numeric()
-                    ->minValue(0.1)
-                    ->step(0.1)
-                    ->visible(fn (Get $get): bool => $get('pricing_type') === self::PRICING_TYPE_KG)
-                    ->live()
-                    ->afterStateUpdated(fn (Set $set, Get $get) => self::recalculatePricing($set, $get)),
+            TextInput::make('weight')
+                ->label('Weight (KG)')
+                ->numeric()
+                ->minValue(0.1)
+                ->step(0.1)
+                ->default(null)
+                ->visible(fn (Get $get): bool => $get('pricing_type') === self::PRICING_TYPE_KG)
+                ->live(onBlur: true)
+                ->afterStateUpdated(function (Set $set, Get $get, $state) {
+                    // Recalculate bahkan jika 0
+                    self::recalculateItemSubtotal($set, $get);
+                    self::recalculatePricing($set, $get);
+                }),
 
-                TextInput::make('quantity')
-                    ->label('Qty')
-                    ->numeric()
-                    ->minValue(1)
-                    ->visible(fn (Get $get): bool => $get('pricing_type') === self::PRICING_TYPE_UNIT)
-                    ->live()
-                    ->afterStateUpdated(fn (Set $set, Get $get) => self::recalculatePricing($set, $get)),
+            TextInput::make('quantity')
+                ->label('Qty')
+                ->numeric()
+                ->minValue(1)
+                ->default(null)
+                ->visible(fn (Get $get): bool => $get('pricing_type') === self::PRICING_TYPE_UNIT)
+                ->live(onBlur: true)
+                ->afterStateUpdated(function (Set $set, Get $get, $state) {
+                    // Recalculate bahkan jika 0
+                    self::recalculateItemSubtotal($set, $get);
+                    self::recalculatePricing($set, $get);
+                }),
 
-                Hidden::make('price')->default(0),
-                Hidden::make('subtotal')->default(0),
-
-                Placeholder::make('subtotal_display')
-                    ->label('Subtotal')
-                    ->content(function (Get $get, Set $set) {
-                        $subtotal = self::calculateItemSubtotal([
-                            'pricing_type' => $get('pricing_type'),
-                            'price_per_kg' => $get('price_per_kg'),
-                            'price_per_unit' => $get('price_per_unit'),
-                            'quantity' => $get('quantity'),
-                            'weight' => $get('weight'),
-                        ]);
-                        
-                        $set('subtotal', $subtotal);
-                        $set('price', self::getItemUnitPrice([
-                            'pricing_type' => $get('pricing_type'),
-                            'price_per_kg' => $get('price_per_kg'),
-                            'price_per_unit' => $get('price_per_unit'),
-                        ]));
-
-                        return $subtotal > 0 
-                            ? "Rp " . number_format($subtotal, 0, ',', '.') 
-                            : "-";
-                    }),
-            ])
-            ->columns(4)
-            ->minItems(1)
-            ->defaultItems(1)
-            ->addActionLabel('Add Service')
-            ->afterStateUpdated(fn (Set $set, Get $get) => self::recalculatePricing($set, $get))
-            ->columnSpanFull();
-    }
+            Placeholder::make('subtotal_display')
+                ->label('Subtotal')
+                ->content(function (Get $get) {
+                    $subtotal = (float) ($get('subtotal') ?? 0);
+                    
+                    return $subtotal > 0 
+                        ? "Rp " . number_format($subtotal, 0, ',', '.') 
+                        : "Rp 0";
+                })
+                ->columnSpan(1),
+        ])
+        ->columns(4)
+        ->minItems(1)
+        ->defaultItems(1)
+        ->addActionLabel('Add Service')
+        ->afterStateUpdated(fn (Set $set, Get $get) => self::recalculatePricing($set, $get))
+        ->columnSpanFull();
+}
 
     protected static function getServiceOptionsSection(): Section
 {
@@ -786,26 +790,26 @@ class OrderResource extends Resource
     }
 
     /**
-     * Calculate subtotal for a single item
-     */
-    protected static function calculateItemSubtotal(array $item): float
-    {
-        $type = $item['pricing_type'] ?? null;
-        $priceKg = floatval($item['price_per_kg'] ?? 0);
-        $priceUnit = floatval($item['price_per_unit'] ?? 0);
-        $quantity = intval($item['quantity'] ?? 0);
-        $weight = floatval($item['weight'] ?? 0);
+ * Calculate subtotal for a single item
+ */
+protected static function calculateItemSubtotal(array $item): float
+{
+    $type = $item['pricing_type'] ?? null;
+    $priceKg = (float) ($item['price_per_kg'] ?? 0);
+    $priceUnit = (float) ($item['price_per_unit'] ?? 0);
+    $quantity = (float) ($item['quantity'] ?? 0);
+    $weight = (float) ($item['weight'] ?? 0);
 
-        if ($type === self::PRICING_TYPE_KG && $weight > 0) {
-            return $weight * $priceKg;
-        }
-
-        if ($type === self::PRICING_TYPE_UNIT && $quantity > 0) {
-            return $quantity * $priceUnit;
-        }
-
-        return 0;
+    if ($type === self::PRICING_TYPE_KG) {
+        return $weight * $priceKg;
     }
+
+    if ($type === self::PRICING_TYPE_UNIT) {
+        return $quantity * $priceUnit;
+    }
+
+    return 0;
+}
 
     /**
      * Get unit price for a single item
@@ -1631,6 +1635,36 @@ class OrderResource extends Resource
             ->paginated([10, 25, 50, 100])
             ->persistFiltersInSession();
     }
+
+    /**
+ * Recalculate subtotal untuk single item di repeater
+ */
+protected static function recalculateItemSubtotal(Set $set, Get $get): void
+{
+    $pricingType = $get('pricing_type');
+    $pricePerKg = (float) ($get('price_per_kg') ?? 0);
+    $pricePerUnit = (float) ($get('price_per_unit') ?? 0);
+    $quantity = (float) ($get('quantity') ?? 0);
+    $weight = (float) ($get('weight') ?? 0);
+
+    $subtotal = self::calculateItemSubtotal([
+        'pricing_type' => $pricingType,
+        'price_per_kg' => $pricePerKg,
+        'price_per_unit' => $pricePerUnit,
+        'quantity' => $quantity,
+        'weight' => $weight,
+    ]);
+    
+    // Set subtotal dan price
+    $set('subtotal', $subtotal);
+    $set('price', self::getItemUnitPrice([
+        'pricing_type' => $pricingType,
+        'price_per_kg' => $pricePerKg,
+        'price_per_unit' => $pricePerUnit,
+    ]));
+}
+
+
 
 
 

@@ -22,26 +22,26 @@ class ProfitSummary extends Page
     public $dateFilter = 'this_month';
     
     public function getSummary(): array
-    {
-        $revenueQuery = Payment::where('status', 'paid');
-        $expenseQuery = Expense::query();
-        
-        // Apply date filter
-        $revenueQuery = $this->applyDateFilter($revenueQuery);
-        $expenseQuery = $this->applyDateFilter($expenseQuery, 'expense_date');
-        
-        $totalRevenue = $revenueQuery->sum('amount');
-        $totalExpenses = $expenseQuery->sum('amount');
-        $netProfit = $totalRevenue - $totalExpenses;
-        $profitMargin = $totalRevenue > 0 ? ($netProfit / $totalRevenue) * 100 : 0;
-        
-        return [
-            'total_revenue' => $totalRevenue,
-            'total_expenses' => $totalExpenses,
-            'net_profit' => $netProfit,
-            'profit_margin' => $profitMargin,
-        ];
-    }
+{
+    $revenueQuery = Payment::where('status', 'success'); // GANTI dari 'paid' ke 'success'
+    $expenseQuery = Expense::query();
+    
+    // Apply date filter
+    $revenueQuery = $this->applyDateFilter($revenueQuery);
+    $expenseQuery = $this->applyDateFilter($expenseQuery, 'expense_date');
+    
+    $totalRevenue = $revenueQuery->sum('amount');
+    $totalExpenses = $expenseQuery->sum('amount');
+    $netProfit = $totalRevenue - $totalExpenses;
+    $profitMargin = $totalRevenue > 0 ? ($netProfit / $totalRevenue) * 100 : 0;
+    
+    return [
+        'total_revenue' => $totalRevenue,
+        'total_expenses' => $totalExpenses,
+        'net_profit' => $netProfit,
+        'profit_margin' => $profitMargin,
+    ];
+}
     
     public function getExpenseBreakdown(): array
     {

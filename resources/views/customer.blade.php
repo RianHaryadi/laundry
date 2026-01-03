@@ -104,8 +104,17 @@
                     <a href="{{ url('/') }}" class="nav-link text-gray-700 hover:text-blue-600 font-medium {{ request()->is('/') ? 'active text-blue-600' : '' }}">
                         Home
                     </a>
+                    <a href="#services" class="nav-link text-gray-700 hover:text-blue-600 font-medium">
+                        Services
+                    </a>
                     <a href="{{ url('/tracking') }}" class="nav-link text-gray-700 hover:text-blue-600 font-medium {{ request()->is('tracking') ? 'active text-blue-600' : '' }}">
                         Tracking
+                    </a>
+                    <a href="{{ url('/booking') }}" class="nav-link text-gray-700 hover:text-blue-600 font-medium {{ request()->is('booking') ? 'active text-blue-600' : '' }}">
+                        Booking
+                    </a>
+                    <a href="#about" class="nav-link text-gray-700 hover:text-blue-600 font-medium">
+                        About
                     </a>
                 </div>
                 
@@ -128,18 +137,25 @@
                             <div class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                                 <div class="px-4 py-3 border-b border-gray-100">
                                     <p class="font-semibold text-gray-800">{{ auth('customer')->user()->name }}</p>
-                                    <p class="text-xs text-gray-500 mt-0.5">{{ auth('customer')->user()->email ?? auth('customer')->user()->phone }}</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">{{ auth('customer')->user()->email }}</p>
                                 </div>
-                                <a href="{{ route('profile.index') }}" class="flex items-center px-4 py-2.5 hover:bg-gray-50 text-gray-700 transition">
+                                <a href="{{ route('customer.profile') }}" class="flex items-center px-4 py-2.5 hover:bg-gray-50 text-gray-700 transition">
+                                    <i class="fas fa-user w-5"></i>
                                     <span>My Profile</span>
                                 </a>
-                                <a href="{{ route('orders.index') }}" class="flex items-center px-4 py-2.5 hover:bg-gray-50 text-gray-700 transition">
+                                <a href="{{ route('customer.orders') }}" class="flex items-center px-4 py-2.5 hover:bg-gray-50 text-gray-700 transition">
+                                    <i class="fas fa-shopping-bag w-5"></i>
                                     <span>My Orders</span>
                                 </a>
+                                <a href="{{ route('customer.coupons') }}" class="flex items-center px-4 py-2.5 hover:bg-gray-50 text-gray-700 transition">
+                                    <i class="fas fa-ticket-alt w-5"></i>
+                                    <span>My Coupons</span>
+                                </a>
                                 <div class="border-t border-gray-100 mt-1 pt-1">
-                                    <form action="{{ route('logout') }}" method="POST">
+                                    <form action="{{ route('customer.logout') }}" method="POST">
                                         @csrf
                                         <button type="submit" class="flex items-center w-full px-4 py-2.5 hover:bg-red-50 text-red-600 transition">
+                                            <i class="fas fa-sign-out-alt w-5"></i>
                                             <span>Logout</span>
                                         </button>
                                     </form>
@@ -147,8 +163,11 @@
                             </div>
                         </div>
                     @else
-                        <a href="{{ route('login') }}" class="btn-primary px-5 py-2 rounded-lg font-medium text-white">
+                        <a href="{{ route('customer.login') }}" class="btn-outline px-5 py-2 rounded-lg font-medium">
                             Login
+                        </a>
+                        <a href="{{ route('customer.register') }}" class="btn-primary px-5 py-2 rounded-lg font-medium text-white">
+                            Register
                         </a>
                     @endauth
                 </div>
@@ -190,26 +209,32 @@
                             </div>
                             <div>
                                 <p class="font-semibold text-gray-800">{{ auth('customer')->user()->name }}</p>
-                                <p class="text-sm text-gray-500">{{ auth('customer')->user()->email ?? auth('customer')->user()->phone }}</p>
+                                <p class="text-sm text-gray-500">{{ auth('customer')->user()->email }}</p>
                             </div>
                         </div>
-                        <a href="{{ route('profile.index') }}" class="block px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700">
-                            My Profile
+                        <a href="{{ route('customer.profile') }}" class="block px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700">
+                            <i class="fas fa-user w-5 mr-2"></i>My Profile
                         </a>
-                        <a href="{{ route('orders.index') }}" class="block px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700">
-                            My Orders
+                        <a href="{{ route('customer.orders') }}" class="block px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700">
+                            <i class="fas fa-shopping-bag w-5 mr-2"></i>My Orders
                         </a>
-                        <form action="{{ route('logout') }}" method="POST">
+                        <a href="{{ route('customer.coupons') }}" class="block px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700">
+                            <i class="fas fa-ticket-alt w-5 mr-2"></i>My Coupons
+                        </a>
+                        <form action="{{ route('customer.logout') }}" method="POST">
                             @csrf
                             <button type="submit" class="w-full text-left px-4 py-3 rounded-lg hover:bg-red-50 text-red-600">
-                                Logout
+                                <i class="fas fa-sign-out-alt w-5 mr-2"></i>Logout
                             </button>
                         </form>
                     </div>
                 @else
-                    <div class="pt-4 border-t border-gray-200">
-                        <a href="{{ route('login') }}" class="block btn-primary py-3 rounded-lg font-medium text-white text-center">
+                    <div class="pt-4 border-t border-gray-200 space-y-2">
+                        <a href="{{ route('customer.login') }}" class="block btn-outline py-3 rounded-lg font-medium text-center">
                             Login
+                        </a>
+                        <a href="{{ route('customer.register') }}" class="block btn-primary py-3 rounded-lg font-medium text-white text-center">
+                            Register
                         </a>
                     </div>
                 @endauth

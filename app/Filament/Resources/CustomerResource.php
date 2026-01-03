@@ -62,6 +62,44 @@ class CustomerResource extends Resource
                     ])
                     ->columns(3),
 
+                Forms\Components\Section::make('Web Account (Optional)')
+                    ->description('Set password only if customer will access the web/mobile app. Leave empty for walk-in customers.')
+                    ->schema([
+                        Forms\Components\TextInput::make('password')
+                            ->label('Password')
+                            ->password()
+                            ->dehydrateStateUsing(fn ($state) => filled($state) ? bcrypt($state) : null)
+                            ->dehydrated(fn ($state) => filled($state))
+                            ->revealable()
+                            ->maxLength(255)
+                            ->placeholder('Leave empty if not needed')
+                            ->helperText('Required only if customer will login to web/mobile app')
+                            ->visible(fn ($livewire) => $livewire instanceof Pages\CreateCustomer),
+
+                        Forms\Components\TextInput::make('password')
+                            ->label('New Password')
+                            ->password()
+                            ->dehydrateStateUsing(fn ($state) => filled($state) ? bcrypt($state) : null)
+                            ->dehydrated(fn ($state) => filled($state))
+                            ->revealable()
+                            ->maxLength(255)
+                            ->placeholder('Leave empty to keep current password')
+                            ->helperText('Only fill if you want to change the password')
+                            ->visible(fn ($livewire) => $livewire instanceof Pages\EditCustomer),
+
+                        Forms\Components\Placeholder::make('web_account_status')
+                            ->label('Web Account Status')
+                            ->content(fn ($record): string => 
+                                $record && $record->hasWebAccount() 
+                                    ? '✅ Customer has web account access' 
+                                    : '❌ Customer does not have web account access'
+                            )
+                            ->visible(fn ($livewire) => $livewire instanceof Pages\EditCustomer),
+                    ])
+                    ->columns(2)
+                    ->collapsible()
+                    ->collapsed(),
+
                 Forms\Components\Section::make('Address Information')
                     ->schema([
                         Forms\Components\Textarea::make('address')
@@ -73,22 +111,22 @@ class CustomerResource extends Resource
                     ])
                     ->collapsible(),
 
-                 Forms\Components\Section::make('Membership')
-            ->schema([
-                Forms\Components\Toggle::make('is_member')
-                    ->label('Is Member')
-                    ->default(false),
+                Forms\Components\Section::make('Membership')
+                    ->schema([
+                        Forms\Components\Toggle::make('is_member')
+                            ->label('Is Member')
+                            ->default(false),
 
-                Forms\Components\TextInput::make('available_coupons')
-                    ->numeric()
-                    ->default(0)
-                    ->minValue(0),
+                        Forms\Components\TextInput::make('available_coupons')
+                            ->numeric()
+                            ->default(0)
+                            ->minValue(0),
 
-                Forms\Components\DatePicker::make('member_since')
-                    ->native(false)
-                    ->maxDate(now()),
-            ])
-            ->columns(3),
+                        Forms\Components\DatePicker::make('member_since')
+                            ->native(false)
+                            ->maxDate(now()),
+                    ])
+                    ->columns(3),
 
                 Forms\Components\Section::make('Additional Information')
                     ->schema([
@@ -150,6 +188,22 @@ class CustomerResource extends Resource
                     ->copyMessage('Phone copied!')
                     ->copyMessageDuration(1500),
 
+                Tables\Columns\IconColumn::make('password')
+                    ->label('Web Access')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->trueColor('success')
+                    ->falseColor('gray')
+                    ->getStateUsing(fn (Customer $record): bool => $record->hasWebAccount())
+                    ->tooltip(fn (Customer $record): string => 
+                        $record->hasWebAccount() 
+                            ? 'Can login to web/app' 
+                            : 'No web access'
+                    )
+                    ->alignCenter()
+                    ->toggleable(),
+
                 Tables\Columns\BadgeColumn::make('membership_level')
                     ->label('Membership')
                     ->colors([
@@ -189,17 +243,6 @@ class CustomerResource extends Resource
                     ->color('info')
                     ->alignCenter()
                     ->toggleable(),
-
-                // COMMENTED OUT - Uncomment when orders table is ready
-                // Tables\Columns\TextColumn::make('total_spent')
-                //     ->label('Total Spent')
-                //     ->getStateUsing(fn (Customer $record): float => 
-                //         $record->orders()->sum('grand_total') ?? 0  // Change 'grand_total' to your actual column name
-                //     )
-                //     ->money('IDR')
-                //     ->color('success')
-                //     ->weight('semibold')
-                //     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('preferredOutlet.name')
                     ->label('Preferred Outlet')
@@ -258,6 +301,16 @@ class CustomerResource extends Resource
                     ->preload()
                     ->multiple()
                     ->label('Filter by Preferred Outlet'),
+
+                Tables\Filters\TernaryFilter::make('has_web_account')
+                    ->label('Web Account Access')
+                    ->placeholder('All customers')
+                    ->trueLabel('With web access')
+                    ->falseLabel('Without web access')
+                    ->queries(
+                        true: fn (Builder $query) => $query->whereNotNull('password'),
+                        false: fn (Builder $query) => $query->whereNull('password'),
+                    ),
 
                 Tables\Filters\Filter::make('points_range')
                     ->form([
@@ -319,6 +372,46 @@ class CustomerResource extends Resource
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
 
+                Tables\Actions\Action::make('set_password')
+                    ->label('Set Password')
+                    ->icon('heroicon-m-key')
+                    ->color('info')
+                    ->visible(fn (Customer $record) => !$record->hasWebAccount())
+                    ->form([
+                        Forms\Components\TextInput::make('password')
+                            ->label('New Password')
+                            ->password()
+                            ->required()
+                            ->revealable()
+                            ->minLength(8)
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('password_confirmation')
+                            ->label('Confirm Password')
+                            ->password()
+                            ->required()
+                            ->revealable()
+                            ->same('password'),
+                    ])
+                    ->action(function (Customer $record, array $data) {
+                        $record->update([
+                            'password' => bcrypt($data['password'])
+                        ]);
+                    })
+                    ->successNotificationTitle('Web access enabled successfully'),
+
+                Tables\Actions\Action::make('remove_password')
+                    ->label('Remove Web Access')
+                    ->icon('heroicon-m-x-circle')
+                    ->color('danger')
+                    ->visible(fn (Customer $record) => $record->hasWebAccount())
+                    ->requiresConfirmation()
+                    ->modalHeading('Remove Web Access')
+                    ->modalDescription('Are you sure you want to remove this customer\'s web account access?')
+                    ->action(function (Customer $record) {
+                        $record->update(['password' => null]);
+                    })
+                    ->successNotificationTitle('Web access removed successfully'),
+
                 Tables\Actions\Action::make('add_points')
                     ->label('Add Points')
                     ->icon('heroicon-m-plus-circle')
@@ -367,6 +460,29 @@ class CustomerResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
+                        ->requiresConfirmation(),
+
+                    Tables\Actions\BulkAction::make('enable_web_access')
+                        ->label('Enable Web Access')
+                        ->icon('heroicon-m-key')
+                        ->color('info')
+                        ->form([
+                            Forms\Components\TextInput::make('default_password')
+                                ->label('Default Password for Selected Customers')
+                                ->password()
+                                ->required()
+                                ->revealable()
+                                ->minLength(8)
+                                ->helperText('This password will be set for all selected customers without web access'),
+                        ])
+                        ->action(function (array $data, $records) {
+                            $records->each(function ($record) use ($data) {
+                                if (!$record->hasWebAccount()) {
+                                    $record->update(['password' => bcrypt($data['default_password'])]);
+                                }
+                            });
+                        })
+                        ->deselectRecordsAfterCompletion()
                         ->requiresConfirmation(),
 
                     Tables\Actions\BulkAction::make('update_membership')

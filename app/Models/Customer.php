@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Customer extends Model
+class Customer extends Authenticatable
 {
-    use HasFactory;
+    use HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -20,6 +21,7 @@ class Customer extends Model
         'name',
         'email',
         'phone',
+        'password',
         'address',
         'is_member',
         'available_coupons',
@@ -28,8 +30,17 @@ class Customer extends Model
         'preferred_outlet_id',
         'email_notifications',
         'sms_notifications',
-        'is_member',
         'notes',
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
     ];
 
     /**
@@ -44,6 +55,8 @@ class Customer extends Model
         'birthday' => 'date',
         'email_notifications' => 'boolean',
         'sms_notifications' => 'boolean',
+        'password' => 'hashed',
+        'email_verified_at' => 'datetime',
     ];
 
     /**
@@ -118,6 +131,14 @@ class Customer extends Model
     public function scopeSmsOptedIn($query)
     {
         return $query->where('sms_notifications', true);
+    }
+
+    /**
+     * Scope a query to only include customers with web account (has password).
+     */
+    public function scopeWithWebAccount($query)
+    {
+        return $query->whereNotNull('password');
     }
 
     /**
@@ -199,6 +220,14 @@ class Customer extends Model
     public function isMember(): bool
     {
         return $this->is_member === true;
+    }
+
+    /**
+     * Check if customer has web account access.
+     */
+    public function hasWebAccount(): bool
+    {
+        return !empty($this->password);
     }
 
     /**

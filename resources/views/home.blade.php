@@ -1,42 +1,31 @@
 @extends('layouts.app')
 @section('title', 'Home - Rizki Laundry')
 @section('content')
-    <!-- Floating Action Button -->
-    <div class="floating-action" id="fab">
-        <i class="fas fa-comment"></i>
-    </div>
 
     <!-- Hero Section -->
     <section id="home" class="gradient-bg text-white overflow-hidden -mt-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 pt-32">
             <div class="flex flex-col lg:flex-row items-center">
                 <div class="lg:w-1/2 mb-12 lg:mb-0">
-                    <div class="inline-flex items-center px-4 py-2 rounded-full bg-white bg-opacity-20 backdrop-blur-sm mb-6">
-                        <i class="fas fa-bolt text-yellow-300 mr-2"></i>
-                        <span class="text-sm font-medium">24/7 Pickup & Delivery Available</span>
-                    </div>
-                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">Professional <span class="text-yellow-300">Laundry</span> Service At Your Doorstep</h1>
-                    <p class="text-xl mb-8 opacity-90 max-w-2xl">We pick up, clean, and deliver your clothes with care. Save time and enjoy fresh, clean laundry without the hassle. 100% satisfaction guaranteed.</p>
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">Layanan <span class="text-yellow-300">Laundry</span> Profesional di Depan Pintu Anda</h1>
+                    <p class="text-xl mb-8 opacity-90 max-w-2xl">Kami menjemput, mencuci, dan mengantar pakaian Anda dengan penuh perhatian. Hemat waktu dan nikmati pakaian bersih serta wangi tanpa repot. Kepuasan 100% terjamin.</p>
                     <div class="flex flex-col sm:flex-row gap-4">
                         <button class="btn-primary px-8 py-4 rounded-xl font-semibold text-lg flex items-center justify-center text-white">
-                            <i class="fas fa-calendar-alt mr-3"></i> Schedule Pickup Now
-                        </button>
-                        <button class="btn-secondary px-8 py-4 rounded-xl font-semibold text-lg border-2 border-white flex items-center justify-center text-white hover:bg-white hover:text-blue-600">
-                            <i class="fas fa-play-circle mr-3"></i> Watch How It Works
+                            <i class="fas fa-calendar-alt mr-3"></i> Jadwalkan Penjemputan Sekarang
                         </button>
                     </div>
                     <div class="flex flex-wrap gap-6 mt-12">
                         <div class="flex items-center">
                             <i class="fas fa-check-circle text-green-300 text-xl mr-3"></i>
-                            <span>Eco-Friendly Detergents</span>
+                            <span>Deterjen Ramah Lingkungan</span>
                         </div>
                         <div class="flex items-center">
                             <i class="fas fa-check-circle text-green-300 text-xl mr-3"></i>
-                            <span>Free Pickup & Delivery</span>
+                            <span>Penjemputan & Pengantaran Gratis</span>
                         </div>
                         <div class="flex items-center">
                             <i class="fas fa-check-circle text-green-300 text-xl mr-3"></i>
-                            <span>Same-Day Service</span>
+                            <span>Layanan Satu Hari Selesai</span>
                         </div>
                     </div>
                 </div>
@@ -49,8 +38,8 @@
                                     <i class="fas fa-user-check text-green-600 text-xl"></i>
                                 </div>
                                 <div>
-                                    <p class="font-bold text-gray-800">10,000+</p>
-                                    <p class="text-sm text-gray-600">Happy Customers</p>
+                                    <p class="font-bold text-gray-800">10.000+</p>
+                                    <p class="text-sm text-gray-600">Pelanggan Puas</p>
                                 </div>
                             </div>
                             <div class="flex text-yellow-400">
@@ -59,7 +48,7 @@
                                 <i class="fas fa-star"></i>
                                 <i class="fas fa-star"></i>
                                 <i class="fas fa-star-half-alt"></i>
-                                <span class="text-gray-700 font-medium ml-2">4.8/5</span>
+                                <span class="text-gray-700 font-medium ml-2">4,8/5</span>
                             </div>
                         </div>
                     </div>
@@ -72,20 +61,20 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
                     <div class="text-center">
-                        <div class="stats-counter mb-2">25,000+</div>
-                        <p class="text-gray-600 text-base">Items Cleaned</p>
+                        <div class="stats-counter mb-2">25.000+</div>
+                        <p class="text-gray-600 text-base">Pakaian Dicuci</p>
                     </div>
                     <div class="text-center">
                         <div class="stats-counter mb-2">98%</div>
-                        <p class="text-gray-600 text-base">Satisfaction Rate</p>
+                        <p class="text-gray-600 text-base">Tingkat Kepuasan</p>
                     </div>
                     <div class="text-center">
-                        <div class="stats-counter mb-2">45 min</div>
-                        <p class="text-gray-600 text-base">Avg. Turnaround</p>
+                        <div class="stats-counter mb-2">45 menit</div>
+                        <p class="text-gray-600 text-base">Waktu Proses Rata-rata</p>
                     </div>
                     <div class="text-center">
                         <div class="stats-counter mb-2">24/7</div>
-                        <p class="text-gray-600 text-base">Service Available</p>
+                        <p class="text-gray-600 text-base">Layanan Tersedia</p>
                     </div>
                 </div>
             </div>
@@ -96,7 +85,7 @@
     <section class="py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold mb-4 text-gray-800">How <span class="gradient-text">Rizki Laundry</span> Works</h2>
+                <h2 class="text-4xl font-bold mb-4 text-gray-800">Cara Kerja <span class="gradient-text">Rizki Laundry</span></h2>
                 <p class="text-gray-600 max-w-3xl mx-auto text-lg">Pilih layanan yang paling sesuai dengan kebutuhan Anda</p>
             </div>
 
@@ -120,7 +109,7 @@
                     </div>
                     <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 text-purple-600 font-bold mb-4 text-xl">1</div>
                     <h3 class="text-xl font-bold mb-3 text-gray-800">Jadwalkan Penjemputan</h3>
-                    <p class="text-gray-600">Booking waktu penjemputan melalui WhatsApp, website, atau telepon. Pilih layanan yang Anda butuhkan.</p>
+                    <p class="text-gray-600">Booking waktu penjemputan via WhatsApp, website, atau telepon. Pilih layanan yang Anda butuhkan.</p>
                 </div>
                 <div class="step-card text-center p-8 bg-white rounded-2xl shadow-lg">
                     <div class="feature-icon">
@@ -128,7 +117,7 @@
                     </div>
                     <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 text-purple-600 font-bold mb-4 text-xl">2</div>
                     <h3 class="text-xl font-bold mb-3 text-gray-800">Kami Jemput & Cuci</h3>
-                    <p class="text-gray-600">Tim profesional kami menjemput cucian Anda dan mencucinya dengan peralatan modern dan produk ramah lingkungan.</p>
+                    <p class="text-gray-600">Tim profesional kami menjemput cucian Anda dan mencucinya dengan peralatan modern serta produk ramah lingkungan.</p>
                 </div>
                 <div class="step-card text-center p-8 bg-white rounded-2xl shadow-lg">
                     <div class="feature-icon">
@@ -136,7 +125,7 @@
                     </div>
                     <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 text-purple-600 font-bold mb-4 text-xl">3</div>
                     <h3 class="text-xl font-bold mb-3 text-gray-800">Antar ke Rumah Anda</h3>
-                    <p class="text-gray-600">Pakaian bersih dan wangi diantar ke rumah sesuai jadwal, rapi terlipat dan siap dipakai.</p>
+                    <p class="text-gray-600">Pakaian bersih dan wangi diantar ke rumah sesuai jadwal, sudah dilipat rapi dan siap pakai.</p>
                 </div>
             </div>
 
@@ -164,155 +153,148 @@
                     </div>
                     <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 text-purple-600 font-bold mb-4 text-xl">3</div>
                     <h3 class="text-xl font-bold mb-3 text-gray-800">Ambil Saat Siap</h3>
-                    <p class="text-gray-600">Cucian siap dalam 1-3 hari. Kami akan menginformasikan via WhatsApp, lalu Anda bisa mengambilnya kapan saja.</p>
+                    <p class="text-gray-600">Cucian siap dalam 1-3 hari. Kami akan kabari via WhatsApp, lalu Anda bisa mengambilnya kapan saja.</p>
                 </div>
             </div>
         </div>
     </section>
-
+    
     <!-- Services Section -->
-<section id="services" class="py-20 bg-white">
+<section id="services" class="py-20 bg-gradient-to-b from-gray-50 to-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Section Header -->
         <div class="text-center mb-16">
-            <h2 class="text-4xl font-bold mb-4 text-gray-800">Our <span class="gradient-text">Premium</span> Services</h2>
-            <p class="text-gray-600 max-w-3xl mx-auto text-lg">We offer a wide range of laundry services tailored to meet your specific needs</p>
+            <h2 class="text-4xl font-bold mb-4 text-gray-800">
+                Layanan <span class="gradient-text">Premium</span> Kami
+            </h2>
+            <p class="text-gray-600 max-w-3xl mx-auto text-lg">
+                Kami menyediakan berbagai layanan laundry yang disesuaikan dengan kebutuhan spesifik Anda
+            </p>
         </div>
+
+        <!-- Services Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Wash & Fold -->
-            <div class="service-card bg-white rounded-2xl overflow-hidden shadow-xl">
-                <div class="h-56 bg-gradient-to-r from-blue-50 to-blue-100 flex items-center justify-center relative overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-blue-600/10"></div>
-                    <i class="fas fa-washing-machine text-blue-600 text-7xl relative z-10 transform hover:scale-110 transition-transform duration-300"></i>
-                    <div class="absolute top-4 right-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg">
-                        <i class="fas fa-star mr-1"></i>Most Popular
-                    </div>
-                </div>
-                <div class="p-8">
-                    <h3 class="text-2xl font-bold mb-3 text-gray-800">Wash & Fold</h3>
-                    <p class="text-gray-600 mb-6 leading-relaxed">Professional washing, drying, and folding of your everyday clothes. We use eco-friendly detergents and fabric softeners.</p>
-                    
-                    <!-- Features List -->
-                    <ul class="mb-6 space-y-2">
-                        <li class="flex items-center text-sm text-gray-600">
-                            <i class="fas fa-check-circle text-blue-600 mr-2"></i>
-                            <span>Same-day service available</span>
-                        </li>
-                        <li class="flex items-center text-sm text-gray-600">
-                            <i class="fas fa-check-circle text-blue-600 mr-2"></i>
-                            <span>Eco-friendly products</span>
-                        </li>
-                        <li class="flex items-center text-sm text-gray-600">
-                            <i class="fas fa-check-circle text-blue-600 mr-2"></i>
-                            <span>Neatly folded & packaged</span>
-                        </li>
-                    </ul>
-                    
-                    <div class="flex justify-between items-center mb-6 p-4 bg-blue-50 rounded-xl">
-                        <div>
-                            <span class="font-bold text-blue-600 text-3xl">$1.50</span>
-                            <span class="text-gray-600 text-lg">/lb</span>
+            @foreach($services as $index => $service)
+                @php
+                    // Skema warna untuk setiap layanan
+                    $colors = [
+                        [
+                            'bg' => 'blue', 
+                            'gradient' => 'from-blue-100 to-blue-50', 
+                            'icon' => 'fa-water',
+                            'iconColor' => 'text-blue-500',
+                            'badge' => 'Paling Populer', 
+                            'badgeBg' => 'bg-blue-600',
+                            'badgeIcon' => 'fa-star',
+                            'checkColor' => 'text-blue-600',
+                            'priceColor' => 'text-blue-600',
+                            'priceBg' => 'bg-blue-50',
+                            'buttonBg' => 'bg-blue-600 hover:bg-blue-700'
+                        ],
+                        [
+                            'bg' => 'green', 
+                            'gradient' => 'from-green-100 to-green-50', 
+                            'icon' => 'fa-tshirt',
+                            'iconColor' => 'text-green-500',
+                            'badge' => 'Premium', 
+                            'badgeBg' => 'bg-green-600',
+                            'badgeIcon' => 'fa-leaf',
+                            'checkColor' => 'text-green-600',
+                            'priceColor' => 'text-green-600',
+                            'priceBg' => 'bg-green-50',
+                            'buttonBg' => 'bg-green-600 hover:bg-green-700'
+                        ],
+                        [
+                            'bg' => 'purple', 
+                            'gradient' => 'from-purple-100 to-purple-50', 
+                            'icon' => 'fa-bed',
+                            'iconColor' => 'text-purple-500',
+                            'badge' => 'Perawatan Rumah', 
+                            'badgeBg' => 'bg-purple-600',
+                            'badgeIcon' => 'fa-home',
+                            'checkColor' => 'text-purple-600',
+                            'priceColor' => 'text-purple-600',
+                            'priceBg' => 'bg-purple-50',
+                            'buttonBg' => 'bg-purple-600 hover:bg-purple-700'
+                        ],
+                    ];
+                    $color = $colors[$index % count($colors)];
+                @endphp
+                
+                <!-- Service Card -->
+                <div class="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
+                    <!-- Card Header with Icon -->
+                    <div class="h-52 bg-gradient-to-br {{ $color['gradient'] }} flex items-center justify-center relative">
+                        <!-- Badge -->
+                        <div class="absolute top-4 right-4 {{ $color['badgeBg'] }} text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg flex items-center gap-2">
+                            <i class="fas {{ $color['badgeIcon'] }}"></i>
+                            {{ $color['badge'] }}
                         </div>
-                        <div class="text-right">
-                            <div class="text-sm font-medium text-gray-700">Minimum</div>
-                            <div class="text-sm text-gray-500">5 lbs</div>
-                        </div>
+                        
+                        <!-- Icon -->
+                        <i class="fas {{ $color['icon'] }} {{ $color['iconColor'] }} text-8xl"></i>
                     </div>
-                    <button class="w-full btn-primary py-3.5 rounded-xl font-semibold text-white shadow-lg hover:shadow-xl transition-all">
-                        <i class="fas fa-shopping-cart mr-2"></i> Add Service
-                    </button>
-                </div>
-            </div>
 
-            <!-- Dry Cleaning -->
-            <div class="service-card bg-white rounded-2xl overflow-hidden shadow-xl">
-                <div class="h-56 bg-gradient-to-r from-green-50 to-green-100 flex items-center justify-center relative overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-br from-green-400/10 to-green-600/10"></div>
-                    <i class="fas fa-tshirt text-green-600 text-7xl relative z-10 transform hover:scale-110 transition-transform duration-300"></i>
-                    <div class="absolute top-4 right-4 bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg">
-                        <i class="fas fa-leaf mr-1"></i>Premium
+                    <!-- Card Body -->
+                    <div class="p-6">
+                        <!-- Title & Description -->
+                        <h3 class="text-2xl font-bold mb-2 text-gray-800">
+                            {{ $service->name }}
+                        </h3>
+                        <p class="text-gray-500 mb-5 text-sm">
+                            {{ $service->getShortDescription(100) }}
+                        </p>
+                        
+                        <!-- Features List -->
+                        <ul class="mb-6 space-y-2.5">
+                            <li class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-check-circle {{ $color['checkColor'] }} mr-2.5 text-base"></i>
+                                <span>
+                                    {{ $service->isExpress() ? 'Layanan selesai hari ini tersedia' : 'Layanan profesional' }}
+                                </span>
+                            </li>
+                            <li class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-check-circle {{ $color['checkColor'] }} mr-2.5 text-base"></i>
+                                <span>Produk ramah lingkungan</span>
+                            </li>
+                            <li class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-check-circle {{ $color['checkColor'] }} mr-2.5 text-base"></i>
+                                <span>Kualitas terjamin</span>
+                            </li>
+                        </ul>
+                        
+                        <!-- Pricing Box -->
+                        <div class="flex justify-between items-center mb-6 p-4 {{ $color['priceBg'] }} rounded-2xl">
+                            <!-- Price -->
+                            <div>
+                                @if($service->supportsKgPricing())
+                                    <span class="font-bold {{ $color['priceColor'] }} text-3xl">
+                                        Rp {{ number_format($service->price_per_kg, 0, ',', '.') }}
+                                    </span>
+                                    <span class="text-gray-500 text-base">/kg</span>
+                                @elseif($service->supportsUnitPricing())
+                                    <span class="font-bold {{ $color['priceColor'] }} text-3xl">
+                                        Rp {{ number_format($service->price_per_unit, 0, ',', '.') }}
+                                    </span>
+                                    <span class="text-gray-500 text-base">/item</span>
+                                @else
+                                    <span class="font-bold {{ $color['priceColor'] }} text-3xl">
+                                        Rp {{ number_format($service->base_price, 0, ',', '.') }}
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                        
+                        <!-- Action Button -->
+                        <button class="w-full {{ $color['buttonBg'] }} py-3.5 rounded-2xl font-semibold text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>Tambah Layanan</span>
+                        </button>
                     </div>
                 </div>
-                <div class="p-8">
-                    <h3 class="text-2xl font-bold mb-3 text-gray-800">Dry Cleaning</h3>
-                    <p class="text-gray-600 mb-6 leading-relaxed">Expert dry cleaning for your delicate and special occasion garments. We handle suits, dresses, and delicate fabrics with care.</p>
-                    
-                    <!-- Features List -->
-                    <ul class="mb-6 space-y-2">
-                        <li class="flex items-center text-sm text-gray-600">
-                            <i class="fas fa-check-circle text-green-600 mr-2"></i>
-                            <span>Professional pressing included</span>
-                        </li>
-                        <li class="flex items-center text-sm text-gray-600">
-                            <i class="fas fa-check-circle text-green-600 mr-2"></i>
-                            <span>Stain treatment expertise</span>
-                        </li>
-                        <li class="flex items-center text-sm text-gray-600">
-                            <i class="fas fa-check-circle text-green-600 mr-2"></i>
-                            <span>Garment protection bags</span>
-                        </li>
-                    </ul>
-                    
-                    <div class="flex justify-between items-center mb-6 p-4 bg-green-50 rounded-xl">
-                        <div>
-                            <span class="font-bold text-green-600 text-3xl">$5.99</span>
-                            <span class="text-gray-600 text-lg">/item</span>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-sm font-medium text-gray-700">Includes</div>
-                            <div class="text-sm text-gray-500">Free Pressing</div>
-                        </div>
-                    </div>
-                    <button class="w-full btn-primary py-3.5 rounded-xl font-semibold text-white shadow-lg hover:shadow-xl transition-all" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-                        <i class="fas fa-shopping-cart mr-2"></i> Add Service
-                    </button>
-                </div>
-            </div>
-
-            <!-- Bedding & Linens -->
-            <div class="service-card bg-white rounded-2xl overflow-hidden shadow-xl">
-                <div class="h-56 bg-gradient-to-r from-purple-50 to-purple-100 flex items-center justify-center relative overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-br from-purple-400/10 to-purple-600/10"></div>
-                    <i class="fas fa-bed text-purple-600 text-7xl relative z-10 transform hover:scale-110 transition-transform duration-300"></i>
-                    <div class="absolute top-4 right-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg">
-                        <i class="fas fa-home mr-1"></i>Home Care
-                    </div>
-                </div>
-                <div class="p-8">
-                    <h3 class="text-2xl font-bold mb-3 text-gray-800">Bedding & Linens</h3>
-                    <p class="text-gray-600 mb-6 leading-relaxed">Special care for your comforters, sheets, blankets, and other linens. Perfect for deep cleaning of larger items.</p>
-                    
-                    <!-- Features List -->
-                    <ul class="mb-6 space-y-2">
-                        <li class="flex items-center text-sm text-gray-600">
-                            <i class="fas fa-check-circle text-purple-600 mr-2"></i>
-                            <span>Deep cleaning process</span>
-                        </li>
-                        <li class="flex items-center text-sm text-gray-600">
-                            <i class="fas fa-check-circle text-purple-600 mr-2"></i>
-                            <span>Allergen removal treatment</span>
-                        </li>
-                        <li class="flex items-center text-sm text-gray-600">
-                            <i class="fas fa-check-circle text-purple-600 mr-2"></i>
-                            <span>Fresh & sanitized</span>
-                        </li>
-                    </ul>
-                    
-                    <div class="flex justify-between items-center mb-6 p-4 bg-purple-50 rounded-xl">
-                        <div>
-                            <span class="font-bold text-purple-600 text-3xl">$12.99</span>
-                            <span class="text-gray-600 text-lg">/item</span>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-sm font-medium text-gray-700">Size</div>
-                            <div class="text-sm text-gray-500">King/Queen</div>
-                        </div>
-                    </div>
-                    <button class="w-full btn-primary py-3.5 rounded-xl font-semibold text-white shadow-lg hover:shadow-xl transition-all" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
-                        <i class="fas fa-shopping-cart mr-2"></i> Add Service
-                    </button>
-                </div>
-            </div>
+            @endforeach
         </div>
+    </div>
 </section>
 
     <!-- Tracking Section -->
@@ -320,18 +302,21 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col lg:flex-row gap-12 items-center">
             <div class="lg:w-1/2">
-                <h2 class="text-4xl font-bold mb-6 text-gray-800">Real-Time <span class="gradient-text">Order Tracking</span></h2>
-                <p class="text-gray-600 mb-8 text-lg">Track your laundry from pickup to delivery with our live tracking system. Get notifications at every step.</p>
+                <h2 class="text-4xl font-bold mb-6 text-gray-800">Pelacakan Pesanan <span class="gradient-text">Real-Time</span></h2>
+                <p class="text-gray-600 mb-8 text-lg">Pantau laundry Anda dari penjemputan hingga pengantaran dengan sistem pelacakan langsung kami.</p>
                 
                 <div class="bg-white rounded-2xl p-8 shadow-xl mb-8">
                     <div class="flex mb-6">
-                        <input type="text" id="trackingInput" placeholder="Enter your tracking number" class="flex-grow px-6 py-4 border border-gray-300 rounded-l-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <button onclick="trackOrder()" class="btn-primary px-8 rounded-r-2xl font-medium text-white">
-                            <i class="fas fa-search mr-2"></i> Track
+                        <input type="text" id="trackingInput" placeholder="Masukkan nomor pesanan (Contoh: 000001)" 
+                               class="flex-grow px-6 py-4 border border-gray-300 rounded-l-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <button onclick="trackOrder()" class="bg-blue-600 hover:bg-blue-700 px-8 rounded-r-2xl font-medium text-white transition-all">
+                            <i class="fas fa-search mr-2"></i> Lacak
                         </button>
                     </div>
                     <div class="text-center">
-                        <p class="text-gray-600">Example tracking number: <span class="font-mono font-bold text-blue-600 cursor-pointer hover:underline" onclick="fillExample()">FC-789456123</span></p>
+                        <p class="text-gray-600">Contoh nomor pesanan: 
+                            <span class="font-mono font-bold text-blue-600 cursor-pointer hover:underline" onclick="fillExample('000001')">#000001</span>
+                        </p>
                     </div>
                 </div>
                 
@@ -341,98 +326,158 @@
                             <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center mr-4">
                                 <i class="fas fa-bell text-blue-600 text-xl"></i>
                             </div>
-                            <h4 class="font-bold text-lg">Live Notifications</h4>
+                            <h4 class="font-bold text-lg">Notifikasi Langsung</h4>
                         </div>
-                        <p class="text-gray-600">Get real-time updates on your phone for every step of the process.</p>
+                        <p class="text-gray-600">Dapatkan pembaruan real-time untuk setiap tahap proses.</p>
                     </div>
                     <div class="bg-white rounded-2xl p-6 shadow-lg">
                         <div class="flex items-center mb-4">
                             <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center mr-4">
                                 <i class="fas fa-map-marker-alt text-green-600 text-xl"></i>
                             </div>
-                            <h4 class="font-bold text-lg">Driver Tracking</h4>
+                            <h4 class="font-bold text-lg">Lacak Kurir</h4>
                         </div>
-                        <p class="text-gray-600">See exactly where your laundry is with our live driver tracking.</p>
+                        <p class="text-gray-600">Lihat posisi kurir saat proses jemput/antar berlangsung.</p>
                     </div>
                 </div>
             </div>
             
-            <!-- Initial State - Hidden -->
-            <div id="trackingPlaceholder" class="lg:w-1/2 bg-white rounded-2xl p-12 shadow-2xl text-center">
-                <div class="mb-6">
-                    <i class="fas fa-box-open text-gray-300 text-8xl mb-6"></i>
-                </div>
-                <h3 class="text-2xl font-bold text-gray-800 mb-4">Enter Your Tracking Number</h3>
-                <p class="text-gray-600 text-lg mb-6">Track your order status in real-time by entering your tracking number above.</p>
-                <div class="flex items-center justify-center gap-4 text-gray-500">
-                    <div class="flex items-center">
-                        <i class="fas fa-shield-alt text-blue-600 mr-2"></i>
-                        <span class="text-sm">Secure</span>
-                    </div>
-                    <div class="flex items-center">
-                        <i class="fas fa-clock text-blue-600 mr-2"></i>
-                        <span class="text-sm">Real-time</span>
-                    </div>
-                    <div class="flex items-center">
-                        <i class="fas fa-mobile-alt text-blue-600 mr-2"></i>
-                        <span class="text-sm">Mobile Alerts</span>
+            <div id="trackingPlaceholder" class="lg:w-1/2 relative">
+                <div class="bg-gradient-to-br from-white to-blue-50 rounded-3xl p-12 shadow-2xl border border-blue-100 relative overflow-hidden">
+                    <!-- Decorative circles -->
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-blue-100 rounded-full opacity-20 -mr-32 -mt-32"></div>
+                    <div class="absolute bottom-0 left-0 w-48 h-48 bg-indigo-100 rounded-full opacity-20 -ml-24 -mb-24"></div>
+                    
+                    <div class="relative z-10 text-center">
+                        <div class="mb-8 relative inline-block">
+                            <div class="w-32 h-32 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl flex items-center justify-center mx-auto transform rotate-3 shadow-xl">
+                                <i class="fas fa-box-open text-white text-6xl"></i>
+                            </div>
+                            <div class="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                                <i class="fas fa-star text-white text-sm"></i>
+                            </div>
+                        </div>
+                        
+                        <h3 class="text-3xl font-bold text-gray-800 mb-4">Lacak Pesanan Anda</h3>
+                        <p class="text-gray-600 text-lg mb-8 leading-relaxed">Pantau status cucian Anda secara real-time dengan memasukkan nomor pesanan di samping</p>
+                        
+                        <div class="flex items-center justify-center gap-6 mb-8">
+                            <div class="flex items-center gap-2">
+                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-shield-alt text-blue-600"></i>
+                                </div>
+                                <span class="text-sm font-medium text-gray-700">Aman</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-clock text-green-600"></i>
+                                </div>
+                                <span class="text-sm font-medium text-gray-700">Real-time</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-bell text-purple-600"></i>
+                                </div>
+                                <span class="text-sm font-medium text-gray-700">Notifikasi</span>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                                    <span class="text-sm font-medium text-gray-700">Status pelacakan aktif</span>
+                                </div>
+                                <span class="text-xs text-gray-500">24/7</span>
+                            </div>
+                            <p class="text-xs text-gray-600">Sistem kami siap melacak pesanan Anda kapan saja</p>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Tracking Result - Initially Hidden -->
-            <div id="trackingResult" class="lg:w-1/2 bg-white rounded-2xl p-8 shadow-2xl" style="display: none;">
-                <div class="flex justify-between items-center mb-8">
-                    <div>
-                        <h3 class="text-2xl font-bold text-gray-800">Order #<span id="orderNumber"></span></h3>
-                        <p class="text-gray-600 text-sm mt-1">Customer: <span class="font-medium">John Doe</span></p>
-                    </div>
-                    <div class="flex flex-col items-end gap-2">
-                        <span class="px-4 py-2 bg-blue-100 text-blue-600 rounded-full font-medium text-sm">In Progress</span>
-                        <button onclick="closeTracking()" class="text-gray-400 hover:text-gray-600 transition-colors">
-                            <i class="fas fa-times text-xl"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="space-y-8">
-                    <div class="tracking-step completed">
-                        <h4 class="font-bold text-lg text-gray-800 mb-1">Order Received</h4>
-                        <p class="text-gray-600">Today, 10:30 AM</p>
-                        <p class="text-gray-500 text-sm mt-1">We've received your laundry order and it's being processed.</p>
-                    </div>
-                    
-                    <div class="tracking-step active">
-                        <h4 class="font-bold text-lg text-gray-800 mb-1">Processing</h4>
-                        <p class="text-gray-600">Today, 11:45 AM</p>
-                        <p class="text-gray-500 text-sm mt-1">Your clothes are being washed with eco-friendly detergents.</p>
-                    </div>
-                    
-                    <div class="tracking-step">
-                        <h4 class="font-bold text-lg text-gray-800 mb-1 opacity-70">Quality Check</h4>
-                        <p class="text-gray-600 opacity-70">Estimated: Today, 2:00 PM</p>
-                        <p class="text-gray-500 text-sm mt-1">Each item will be inspected for quality before packaging.</p>
-                    </div>
-                    
-                    <div class="tracking-step">
-                        <h4 class="font-bold text-lg text-gray-800 mb-1 opacity-70">Out for Delivery</h4>
-                        <p class="text-gray-600 opacity-70">Estimated: Today, 4:30 PM</p>
-                        <p class="text-gray-500 text-sm mt-1">Your clean laundry will be delivered to your doorstep.</p>
-                    </div>
-                </div>
-                
-                <div class="mt-10 pt-8 border-t border-gray-200">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+           <div id="trackingResult" class="lg:w-1/2 relative" style="display: none;">
+    <div class="bg-gradient-to-br from-white to-blue-50 rounded-3xl p-8 shadow-2xl border border-blue-100 relative overflow-hidden">
+        <!-- Decorative elements -->
+        <div class="absolute top-0 right-0 w-40 h-40 bg-blue-100 rounded-full opacity-30 -mr-20 -mt-20"></div>
+        <div class="absolute bottom-0 left-0 w-32 h-32 bg-indigo-100 rounded-full opacity-30 -ml-16 -mb-16"></div>
+        
+        <div class="relative z-10">
+            <!-- Header -->
+            <div class="flex justify-between items-start mb-8">
+                <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-receipt text-white text-xl"></i>
+                        </div>
                         <div>
-                            <p class="text-gray-600">Estimated Delivery</p>
-                            <p class="text-2xl font-bold text-gray-800">Today, 5:00 - 6:00 PM</p>
+                            <h3 class="text-2xl font-bold text-gray-800">Pesanan <span id="res_orderID" class="text-blue-600"></span></h3>
+                            <p class="text-gray-600 text-sm mt-1">
+                                <i class="fas fa-user text-blue-500 mr-1"></i>
+                                <span id="res_customerName" class="font-medium"></span>
+                            </p>
                         </div>
-                        <button class="btn-primary px-6 py-3 rounded-xl font-medium text-white whitespace-nowrap">
-                            <i class="fas fa-phone-alt mr-2"></i> Contact Driver
-                        </button>
+                    </div>
+                </div>
+                <div class="flex flex-col items-end gap-3">
+                    <span id="res_statusLabel" class="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full font-semibold text-sm shadow-lg"></span>
+                    <button onclick="closeTracking()" class="w-10 h-10 bg-red-50 hover:bg-red-100 rounded-full flex items-center justify-center transition-all group">
+                        <i class="fas fa-times text-red-400 group-hover:text-red-600 text-lg"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Timeline -->
+            <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg mb-6">
+                <h4 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <i class="fas fa-route text-blue-600"></i>
+                    Status Perjalanan
+                </h4>
+                <div id="res_timeline" class="space-y-0"></div>
+            </div>
+            
+            <!-- Delivery Info -->
+            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-6 shadow-xl text-white">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i class="fas fa-clock text-yellow-300"></i>
+                            <p class="text-blue-100 text-sm font-medium">Perkiraan Selesai</p>
+                        </div>
+                        <p id="res_deliveryTime" class="text-2xl font-bold"></p>
+                    </div>
+                    <div id="res_courierBtn"></div>
+                </div>
+            </div>
+            
+            <!-- Additional Info Cards -->
+            <div class="grid grid-cols-2 gap-4 mt-6">
+                <div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-md">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-check-circle text-green-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-600">Status</p>
+                            <p class="text-sm font-bold text-gray-800">Terlacak</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-md">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-bell text-purple-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-600">Notifikasi</p>
+                            <p class="text-sm font-bold text-gray-800">Aktif</p>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
         </div>
     </div>
 </section>
@@ -441,19 +486,19 @@
 <section id="pricing" class="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-            <h2 class="text-4xl font-bold mb-4 text-gray-800">Affordable <span class="gradient-text">Pricing</span> for Everyone</h2>
-            <p class="text-gray-600 max-w-3xl mx-auto text-lg">Pay as you go with no commitment, or save more with our membership plans</p>
+            <h2 class="text-4xl font-bold mb-4 text-gray-800">Harga <span class="gradient-text">Terjangkau</span> untuk Semua</h2>
+            <p class="text-gray-600 max-w-3xl mx-auto text-lg">Bayar sesuai pemakaian tanpa komitmen, atau hemat lebih dengan paket membership kami</p>
         </div>
 
         <!-- Toggle Switch -->
         <div class="flex justify-center mb-12">
             <div class="inline-flex items-center bg-white rounded-full p-2 shadow-lg">
                 <button onclick="switchPricing('payg')" id="paygBtn" class="pricing-toggle active px-8 py-3 rounded-full font-semibold transition-all">
-                    Pay as You Go
+                    Bayar per Pakai
                 </button>
                 <button onclick="switchPricing('membership')" id="memberBtn" class="pricing-toggle px-8 py-3 rounded-full font-semibold transition-all">
-                    Membership Plans
-                    <span class="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Save 20%</span>
+                    Paket Membership
+                    <span class="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Hemat 20%</span>
                 </button>
             </div>
         </div>
@@ -466,8 +511,8 @@
                     <div class="icon-wrapper bg-gradient-to-br from-blue-400 to-blue-600">
                         <i class="fas fa-tshirt text-white text-3xl"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Wash & Fold</h3>
-                    <p class="text-gray-600 text-sm mb-4">Everyday laundry service</p>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Cuci & Lipat</h3>
+                    <p class="text-gray-600 text-sm mb-4">Layanan laundry sehari-hari</p>
                     <div class="price-tag">
                         <span class="text-4xl font-bold text-gray-800">Rp 7K</span>
                         <span class="text-gray-600">/kg</span>
@@ -476,7 +521,7 @@
                     <ul class="space-y-2 mb-6 text-sm">
                         <li class="flex items-center text-gray-700">
                             <i class="fas fa-check text-blue-600 mr-2 text-xs"></i>
-                            <span>24-48 jam selesai</span>
+                            <span>Selesai 24-48 jam</span>
                         </li>
                         <li class="flex items-center text-gray-700">
                             <i class="fas fa-check text-blue-600 mr-2 text-xs"></i>
@@ -498,7 +543,7 @@
                         <i class="fas fa-spray-can text-white text-3xl"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-2">Dry Clean</h3>
-                    <p class="text-gray-600 text-sm mb-4">Pakaian formal & delicate</p>
+                    <p class="text-gray-600 text-sm mb-4">Pakaian formal & bahan delicate</p>
                     <div class="price-tag">
                         <span class="text-4xl font-bold text-gray-800">Rp 25K</span>
                         <span class="text-gray-600">/pcs</span>
@@ -511,7 +556,7 @@
                         </li>
                         <li class="flex items-center text-gray-700">
                             <i class="fas fa-check text-purple-600 mr-2 text-xs"></i>
-                            <span>Free pressing</span>
+                            <span>Pressing gratis</span>
                         </li>
                         <li class="flex items-center text-gray-700">
                             <i class="fas fa-check text-purple-600 mr-2 text-xs"></i>
@@ -549,7 +594,7 @@
                         </li>
                         <li class="flex items-center text-gray-700">
                             <i class="fas fa-check text-orange-600 mr-2 text-xs"></i>
-                            <span>Same-day delivery</span>
+                            <span>Pengantaran hari yang sama</span>
                         </li>
                     </ul>
                     <button class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-semibold transition-all transform group-hover:scale-105">
@@ -562,8 +607,8 @@
                     <div class="icon-wrapper bg-gradient-to-br from-pink-400 to-pink-600">
                         <i class="fas fa-gem text-white text-3xl"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Premium Care</h3>
-                    <p class="text-gray-600 text-sm mb-4">Sepatu, tas & bedding</p>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Perawatan Premium</h3>
+                    <p class="text-gray-600 text-sm mb-4">Sepatu, tas & perlengkapan tidur</p>
                     <div class="price-tag">
                         <span class="text-4xl font-bold text-gray-800">Rp 35K</span>
                         <span class="text-gray-600">/pcs</span>
@@ -572,7 +617,7 @@
                     <ul class="space-y-2 mb-6 text-sm">
                         <li class="flex items-center text-gray-700">
                             <i class="fas fa-check text-pink-600 mr-2 text-xs"></i>
-                            <span>Deep cleaning</span>
+                            <span>Pembersihan mendalam</span>
                         </li>
                         <li class="flex items-center text-gray-700">
                             <i class="fas fa-check text-pink-600 mr-2 text-xs"></i>
@@ -616,8 +661,8 @@
                             <i class="fas fa-star text-purple-600"></i>
                         </div>
                         <div>
-                            <h4 class="font-bold text-gray-800">Poin Reward</h4>
-                            <p class="text-sm text-gray-600">Setiap transaksi dapat poin</p>
+                            <h4 class="font-bold text-gray-800">Reward Kupon</h4>
+                            <p class="text-sm text-gray-600">Dapat kupon setiap transaksi</p>
                         </div>
                     </div>
                 </div>
@@ -642,11 +687,11 @@
                         <ul class="space-y-3 mb-8">
                             <li class="flex items-start">
                                 <i class="fas fa-check-circle text-blue-600 mr-3 mt-1"></i>
-                                <span class="text-gray-700">20kg Wash & Fold</span>
+                                <span class="text-gray-700">20kg Cuci & Lipat</span>
                             </li>
                             <li class="flex items-start">
                                 <i class="fas fa-check-circle text-blue-600 mr-3 mt-1"></i>
-                                <span class="text-gray-700">Gratis antar jemput unlimited</span>
+                                <span class="text-gray-700">Antar jemput unlimited gratis</span>
                             </li>
                             <li class="flex items-start">
                                 <i class="fas fa-check-circle text-blue-600 mr-3 mt-1"></i>
@@ -654,7 +699,7 @@
                             </li>
                             <li class="flex items-start">
                                 <i class="fas fa-check-circle text-blue-600 mr-3 mt-1"></i>
-                                <span class="text-gray-700">Priority customer service</span>
+                                <span class="text-gray-700">Prioritas customer service</span>
                             </li>
                         </ul>
                         <button class="w-full bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white py-4 rounded-xl font-semibold transition-all">
@@ -670,7 +715,7 @@
                     </div>
                     <div class="p-8">
                         <h3 class="text-2xl font-bold text-white mb-2">Premium</h3>
-                        <p class="text-blue-100 mb-6">Best value for families</p>
+                        <p class="text-blue-100 mb-6">Nilai terbaik untuk keluarga</p>
                         <div class="mb-6">
                             <span class="text-5xl font-bold text-white">Rp 349K</span>
                             <span class="text-blue-100">/bulan</span>
@@ -681,15 +726,15 @@
                         <ul class="space-y-3 mb-8">
                             <li class="flex items-start">
                                 <i class="fas fa-check-circle text-yellow-300 mr-3 mt-1"></i>
-                                <span class="text-white">40kg Wash & Fold</span>
+                                <span class="text-white">40kg Cuci & Lipat</span>
                             </li>
                             <li class="flex items-start">
                                 <i class="fas fa-check-circle text-yellow-300 mr-3 mt-1"></i>
-                                <span class="text-white">5 Dry Clean items gratis</span>
+                                <span class="text-white">5 item Dry Clean gratis</span>
                             </li>
                             <li class="flex items-start">
                                 <i class="fas fa-check-circle text-yellow-300 mr-3 mt-1"></i>
-                                <span class="text-white">Express service 2x gratis</span>
+                                <span class="text-white">2x layanan express gratis</span>
                             </li>
                             <li class="flex items-start">
                                 <i class="fas fa-check-circle text-yellow-300 mr-3 mt-1"></i>
@@ -697,7 +742,7 @@
                             </li>
                             <li class="flex items-start">
                                 <i class="fas fa-check-circle text-yellow-300 mr-3 mt-1"></i>
-                                <span class="text-white">Priority scheduling</span>
+                                <span class="text-white">Prioritas penjadwalan</span>
                             </li>
                         </ul>
                         <button class="w-full bg-white text-blue-600 hover:bg-gray-100 py-4 rounded-xl font-semibold transition-all transform hover:scale-105">
@@ -721,19 +766,19 @@
                         <ul class="space-y-3 mb-8">
                             <li class="flex items-start">
                                 <i class="fas fa-check-circle text-purple-600 mr-3 mt-1"></i>
-                                <span class="text-gray-700">80kg Wash & Fold</span>
+                                <span class="text-gray-700">80kg Cuci & Lipat</span>
                             </li>
                             <li class="flex items-start">
                                 <i class="fas fa-check-circle text-purple-600 mr-3 mt-1"></i>
-                                <span class="text-gray-700">10 Dry Clean items gratis</span>
+                                <span class="text-gray-700">10 item Dry Clean gratis</span>
                             </li>
                             <li class="flex items-start">
                                 <i class="fas fa-check-circle text-purple-600 mr-3 mt-1"></i>
-                                <span class="text-gray-700">Unlimited express service</span>
+                                <span class="text-gray-700">Layanan express unlimited</span>
                             </li>
                             <li class="flex items-start">
                                 <i class="fas fa-check-circle text-purple-600 mr-3 mt-1"></i>
-                                <span class="text-gray-700">Dedicated account manager</span>
+                                <span class="text-gray-700">Manajer akun khusus</span>
                             </li>
                             <li class="flex items-start">
                                 <i class="fas fa-check-circle text-purple-600 mr-3 mt-1"></i>
@@ -763,8 +808,8 @@
     <section id="testimonials" class="py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold mb-4 text-gray-800">What Our <span class="gradient-text">Customers</span> Say</h2>
-                <p class="text-gray-600 max-w-3xl mx-auto text-lg">Join thousands of satisfied customers who trust us with their laundry needs</p>
+                <h2 class="text-4xl font-bold mb-4 text-gray-800">Kata <span class="gradient-text">Pelanggan</span> Kami</h2>
+                <p class="text-gray-600 max-w-3xl mx-auto text-lg">Bergabunglah dengan ribuan pelanggan puas yang mempercayakan kebutuhan laundry mereka kepada kami</p>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -784,9 +829,9 @@
                             </div>
                         </div>
                     </div>
-                    <p class="text-gray-600 mb-6">"Rizki Laundry has saved me so much time! The clothes always come back perfectly folded and smelling amazing. I love their eco-friendly approach too!"</p>
+                    <p class="text-gray-600 mb-6">"Rizki Laundry benar-benar menghemat waktu saya! Pakaian selalu kembali dengan lipatan rapi dan wangi segar. Saya juga suka pendekatan ramah lingkungan mereka!"</p>
                     <div class="text-sm text-gray-500">
-                        <i class="fas fa-calendar-alt mr-2"></i> Customer for 2 years
+                        <i class="fas fa-calendar-alt mr-2"></i> Pelanggan selama 2 tahun
                     </div>
                 </div>
                 
@@ -806,9 +851,9 @@
                             </div>
                         </div>
                     </div>
-                    <p class="text-gray-600 mb-6">"The tracking feature is fantastic. I always know exactly where my laundry is in the process. The premium bundle is worth every penny for our family of four!"</p>
+                    <p class="text-gray-600 mb-6">"Fitur pelacakannya luar biasa! Saya selalu tahu persis di mana posisi laundry saya. Paket premium sangat worth it untuk keluarga kami yang berempat!"</p>
                     <div class="text-sm text-gray-500">
-                        <i class="fas fa-calendar-alt mr-2"></i> Customer for 1 year
+                        <i class="fas fa-calendar-alt mr-2"></i> Pelanggan selama 1 tahun
                     </div>
                 </div>
                 
@@ -828,60 +873,10 @@
                             </div>
                         </div>
                     </div>
-                    <p class="text-gray-600 mb-6">"I was skeptical at first, but after trying Rizki Laundry, I'll never go back to doing laundry myself. Their dry cleaning service is exceptional for my work suits."</p>
+                    <p class="text-gray-600 mb-6">"Awalnya ragu, tapi setelah mencoba Rizki Laundry, saya tidak akan kembali mencuci sendiri. Layanan dry clean mereka sangat bagus untuk setelan kerja saya."</p>
                     <div class="text-sm text-gray-500">
-                        <i class="fas fa-calendar-alt mr-2"></i> Customer for 8 months
+                        <i class="fas fa-calendar-alt mr-2"></i> Pelanggan selama 8 bulan
                     </div>
-                </div>
-            </div>
-            
-            <div class="text-center mt-12">
-                <div class="inline-flex items-center bg-white rounded-full px-6 py-3 shadow-lg">
-                    <i class="fas fa-star text-yellow-400 text-2xl mr-3"></i>
-                    <div>
-                        <p class="font-bold text-gray-800">Rated 4.8/5</p>
-                        <p class="text-sm text-gray-600">Based on 2,500+ reviews</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="py-20 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-4xl font-bold mb-6">Ready to Experience Hassle-Free Laundry?</h2>
-            <p class="text-xl mb-10 max-w-3xl mx-auto opacity-90">Join thousands of satisfied customers who save 5+ hours every week by letting us handle their laundry. Download our app today and get 20% off your first order!</p>
-            
-            <div class="flex flex-col sm:flex-row justify-center gap-6 mb-12">
-                <button class="bg-white text-blue-600 hover:bg-gray-100 px-10 py-4 rounded-xl font-bold text-lg transition duration-300 shadow-lg flex items-center justify-center">
-                    <i class="fab fa-apple text-2xl mr-3"></i>
-                    <div class="text-left">
-                        <div class="text-xs">Download on the</div>
-                        <div class="text-lg">App Store</div>
-                    </div>
-                </button>
-                <button class="bg-gray-900 text-white hover:bg-gray-800 px-10 py-4 rounded-xl font-bold text-lg transition duration-300 shadow-lg flex items-center justify-center">
-                    <i class="fab fa-google-play text-2xl mr-3"></i>
-                    <div class="text-left">
-                        <div class="text-xs">Get it on</div>
-                        <div class="text-lg">Google Play</div>
-                    </div>
-                </button>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-                <div class="stats-card rounded-2xl p-6">
-                    <div class="text-3xl font-bold mb-2">20% OFF</div>
-                    <p class="opacity-90">First order discount</p>
-                </div>
-                <div class="stats-card rounded-2xl p-6">
-                    <div class="text-3xl font-bold mb-2">Free</div>
-                    <p class="opacity-90">Pickup & Delivery</p>
-                </div>
-                <div class="stats-card rounded-2xl p-6">
-                    <div class="text-3xl font-bold mb-2">24/7</div>
-                    <p class="opacity-90">Customer Support</p>
                 </div>
             </div>
         </div>
@@ -1294,175 +1289,197 @@
             font-size: 2rem;
         }
     }
+/* CSS Tambahan untuk Timeline Fix */
+    .tracking-step {
+        position: relative;
+        padding-left: 45px;
+        padding-bottom: 30px;
+        border-left: 2px solid #e5e7eb;
+    }
+    .tracking-step:last-child {
+        border-left: 2px solid transparent;
+        padding-bottom: 0;
+    }
+    .tracking-step::before {
+        content: '';
+        position: absolute;
+        left: -9px;
+        top: 5px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #fff;
+        border: 2px solid #d1d5db;
+        z-index: 2;
+    }
+    .tracking-step.completed { border-left-color: #10b981; }
+    .tracking-step.completed::before { background: #10b981; border-color: #10b981; }
+    .tracking-step.active::before { 
+        background: #3b82f6; 
+        border-color: #3b82f6; 
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+    }
 </style>
 @endpush
+
 @push('scripts')
 <script>
-    // FAB click handler
-    document.getElementById('fab').addEventListener('click', () => {
-        alert("Hello! How can we help you today? You can reach us at (555) 123-4567 or hello@rizkilaundry.com");
-    });
-    
-    // Counter animation
-    function animateCounter(element, target, duration) {
-        let start = 0;
-        const increment = target / (duration / 16);
-        const timer = setInterval(() => {
-            start += increment;
-            const currentValue = Math.floor(start);
-            if (element.textContent.includes('%')) {
-                element.textContent = currentValue + '%';
-            } else if (element.textContent.includes('min')) {
-                element.textContent = currentValue + ' min';
-            } else if (element.textContent.includes('24/7')) {
-                element.textContent = '24/7';
-                clearInterval(timer);
-            } else {
-                element.textContent = currentValue.toLocaleString() + '+';
-            }
-            
-            if (start >= target) {
-                clearInterval(timer);
-            }
-        }, 16);
-    }
-    
-    // Initialize counters when in viewport
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const counters = document.querySelectorAll('.stats-counter');
-                counters.forEach(counter => {
-                    const text = counter.textContent;
-                    if (text.includes('%')) {
-                        animateCounter(counter, 98, 2000);
-                    } else if (text.includes('min')) {
-                        animateCounter(counter, 45, 2000);
-                    } else if (text.includes('24/7')) {
-                        counter.textContent = '24/7';
-                    } else {
-                        const target = parseInt(text.replace(/[^0-9]/g, ''));
-                        if (!isNaN(target)) {
-                            animateCounter(counter, target, 2000);
-                        }
-                    }
-                });
-                observer.disconnect();
-            }
-        });
-    }, { threshold: 0.5 });
-    
-    const statsSection = document.querySelector('.stats-counter');
-    if (statsSection) {
-        observer.observe(statsSection);
-    }
-    
-    // Tab switching function for How It Works
-    function switchTab(service) {
+    /**
+     * Fungsi Switch Tab antara Pickup dan Walk-in
+     */
+    function switchTab(tabName) {
+        // Ambil semua elemen tab dan content
         const pickupTab = document.getElementById('pickupTab');
         const walkinTab = document.getElementById('walkinTab');
         const pickupContent = document.getElementById('pickupContent');
         const walkinContent = document.getElementById('walkinContent');
-        
-        if (service === 'pickup') {
+
+        if (tabName === 'pickup') {
+            // Aktifkan tab Pickup
             pickupTab.classList.add('active');
+            pickupTab.classList.remove('text-gray-600');
             walkinTab.classList.remove('active');
+            walkinTab.classList.add('text-gray-600');
+
+            // Tampilkan content Pickup
+            pickupContent.style.display = 'grid';
             pickupContent.classList.add('active');
+            walkinContent.style.display = 'none';
             walkinContent.classList.remove('active');
-        } else {
+        } else if (tabName === 'walkin') {
+            // Aktifkan tab Walk-in
             walkinTab.classList.add('active');
+            walkinTab.classList.remove('text-gray-600');
             pickupTab.classList.remove('active');
+            pickupTab.classList.add('text-gray-600');
+
+            // Tampilkan content Walk-in
+            walkinContent.style.display = 'grid';
             walkinContent.classList.add('active');
+            pickupContent.style.display = 'none';
             pickupContent.classList.remove('active');
         }
     }
-    
-    // Pricing toggle function
-    function switchPricing(type) {
-        const paygBtn = document.getElementById('paygBtn');
-        const memberBtn = document.getElementById('memberBtn');
-        const paygContent = document.getElementById('paygContent');
-        const memberContent = document.getElementById('memberContent');
-        
-        if (type === 'payg') {
-            paygBtn.classList.add('active');
-            memberBtn.classList.remove('active');
-            paygContent.classList.add('active');
-            memberContent.classList.remove('active');
-        } else {
-            memberBtn.classList.add('active');
-            paygBtn.classList.remove('active');
-            memberContent.classList.add('active');
-            paygContent.classList.remove('active');
-        }
-    }
-    
-    // Tracking Order Functions
+
+    /**
+     * Fungsi Utama Pelacakan
+     * Hanya berjalan jika dipanggil (Klik tombol / Enter)
+     */
     function trackOrder() {
-        const trackingNumber = document.getElementById('trackingInput').value.trim();
+        const input = document.getElementById('trackingInput');
+        if (!input) return;
+
+        const trackingNumber = input.value.trim();
         
         if (!trackingNumber) {
-            alert('Please enter a tracking number');
+            alert('Silakan masukkan nomor tracking');
             return;
         }
-        
-        // Validate format (simple validation)
-        if (!trackingNumber.match(/^[A-Z]{2}-\d{9}$/i)) {
-            alert('Invalid tracking number format. Please use format: XX-123456789');
-            return;
-        }
-        
-        // Hide placeholder, show result
-        document.getElementById('trackingPlaceholder').style.display = 'none';
-        const resultDiv = document.getElementById('trackingResult');
-        resultDiv.style.display = 'block';
-        resultDiv.classList.add('slide-in');
-        
-        // Update order number
-        document.getElementById('orderNumber').textContent = trackingNumber.toUpperCase();
-        
-        // Scroll to result (optional)
-        resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        // URL dari Laravel
+        const url = "{{ route('order.track') }}?number=" + trackingNumber;
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) throw new Error('Server bermasalah');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Sembunyikan placeholder, tampilkan hasil
+                    const placeholder = document.getElementById('trackingPlaceholder');
+                    const resultDiv = document.getElementById('trackingResult');
+                    
+                    if (placeholder) placeholder.style.display = 'none';
+                    if (resultDiv) {
+                        resultDiv.style.display = 'block';
+                        resultDiv.classList.add('slide-in');
+                    }
+
+                    // Fungsi pembantu untuk mengisi teks dengan aman
+                    const setText = (id, val) => {
+                        const el = document.getElementById(id);
+                        if (el) el.textContent = val;
+                    };
+
+                    setText('res_orderID', data.order_number);
+                    setText('res_customerName', data.customer_name);
+                    setText('res_statusLabel', data.status_label);
+                    setText('res_deliveryTime', data.delivery_time);
+
+                    // Render Timeline
+                    const timelineEl = document.getElementById('res_timeline');
+                    if (timelineEl) {
+                        timelineEl.innerHTML = data.steps.map(step => `
+                            <div class="tracking-step ${step.is_completed ? 'completed' : ''} ${step.is_active ? 'active' : ''}">
+                                <h4 class="font-bold text-lg text-gray-800 mb-1">${step.title}</h4>
+                                <p class="text-gray-500 text-sm">${step.desc}</p>
+                            </div>
+                        `).join('');
+                    }
+
+                    // Tombol Kurir
+                    const btnContainer = document.getElementById('res_courierBtn');
+                    if (btnContainer) {
+                        btnContainer.innerHTML = data.courier_phone ? `
+                            <a href="https://wa.me/${data.courier_phone}" target="_blank" class="btn-primary px-6 py-3 rounded-xl font-medium text-white inline-block">
+                                <i class="fab fa-whatsapp mr-2"></i> Chat Kurir
+                            </a>` : '';
+                    }
+
+                    if (resultDiv) resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Gagal mengambil data. Pastikan nomor order benar.');
+            });
     }
-    
+
+    /**
+     * Fungsi untuk mengisi contoh (FC-789...)
+     */
+    function fillExample(id) {
+        const input = document.getElementById('trackingInput');
+        if (input) {
+            input.value = id;
+            // Kita tidak panggil trackOrder() secara otomatis di sini agar user yang klik
+        }
+    }
+
+    /**
+     * Fungsi Menutup Hasil
+     */
     function closeTracking() {
-        document.getElementById('trackingResult').style.display = 'none';
-        document.getElementById('trackingPlaceholder').style.display = 'block';
-        document.getElementById('trackingInput').value = '';
+        const resultDiv = document.getElementById('trackingResult');
+        const placeholder = document.getElementById('trackingPlaceholder');
+        
+        if (resultDiv) resultDiv.style.display = 'none';
+        if (placeholder) placeholder.style.display = 'block';
+        
+        const input = document.getElementById('trackingInput');
+        if (input) input.value = '';
     }
-    
-    function fillExample() {
-        document.getElementById('trackingInput').value = 'FC-789456123';
-    }
-    
-    // Allow Enter key to submit tracking
+
+    /**
+     * Inisialisasi Event Listener
+     */
     document.addEventListener('DOMContentLoaded', function() {
         const trackingInput = document.getElementById('trackingInput');
         if (trackingInput) {
+            // Hanya aktifkan Enter key, tidak menjalankan fetch saat load
             trackingInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     trackOrder();
                 }
             });
         }
-    });
-    
-    // Smooth scrolling for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const targetId = this.getAttribute('href');
-            if(targetId === '#') return;
-            
-            const targetElement = document.querySelector(targetId);
-            if(targetElement) {
-                window.scrollTo({
-                    top: targetElement.offsetTop - 80,
-                    behavior: 'smooth'
-                });
-            }
-        });
+
+        // Set default tab saat halaman load
+        switchTab('pickup');
     });
 </script>
 @endpush
