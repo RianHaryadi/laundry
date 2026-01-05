@@ -226,14 +226,14 @@ class CustomerResource extends Resource
                     ->sortable()
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('points')
-                    ->label('Points')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('available_coupons')
+                    ->label('Coupons')
                     ->sortable()
                     ->badge()
-                    ->color('success')
-                    ->suffix(' pts')
-                    ->alignCenter(),
+                    ->color(fn ($state) => $state > 0 ? 'success' : 'gray')
+                    ->icon('heroicon-m-ticket')
+                    ->suffix(' coupons')
+                    ->alignCenter(),    
 
                 Tables\Columns\TextColumn::make('orders_count')
                     ->label('Total Orders')

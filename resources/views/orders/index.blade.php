@@ -13,9 +13,6 @@
                     <h1 class="text-4xl font-bold text-gray-900 mb-2">My Orders</h1>
                     <p class="text-gray-600">View and manage all your laundry orders</p>
                 </div>
-                <a href="{{ route('booking') }}" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition">
-                    <i class="fas fa-plus mr-2"></i>New Order
-                </a>
             </div>
         </div>
 
@@ -89,7 +86,7 @@
                 @endif
             </form>
         </div>
-
+        
         <!-- Orders List -->
         <div class="bg-white rounded-xl shadow-md overflow-hidden">
             @if($orders->count() > 0)
@@ -109,49 +106,122 @@
                     <tbody class="divide-y divide-gray-200">
                         @foreach($orders as $order)
                         <tr class="hover:bg-gray-50 transition">
+                            {{-- Order ID & Date --}}
                             <td class="px-6 py-4">
-                                <div class="font-bold text-gray-900">{{ $order->formatted_id }}</div>
+                                <div class="font-bold text-gray-900">
+                                    {{ $order->formatted_id ?? '#' . str_pad($order->id, 6, '0', STR_PAD_LEFT) }}
+                                </div>
                                 <div class="text-xs text-gray-500 mt-1">
                                     <i class="far fa-calendar mr-1"></i>
                                     {{ $order->created_at->format('d M Y') }}
                                 </div>
                             </td>
+                            
+                            {{-- Service & Outlet --}}
                             <td class="px-6 py-4">
                                 <div class="flex items-center">
                                     <i class="fas fa-tshirt text-blue-500 mr-2"></i>
-                                    <div>
-                                        <div class="text-sm font-medium text-gray-700">{{ $order->service->name ?? 'N/A' }}</div>
-                                        <div class="text-xs text-gray-500">{{ $order->outlet->name ?? 'N/A' }}</div>
+                                    <div class="w-full">
+                                        {{-- Service Name --}}
+                                        <div class="text-sm font-medium text-gray-700">
+                                            @if($order->service)
+                                                {{ $order->service->name }}
+                                            @elseif($order->items && $order->items->isNotEmpty() && $order->items->first()->service)
+                                                {{ $order->items->first()->service->name }}
+                                                @if($order->items->count() > 1)
+                                                    <span class="text-xs text-gray-500">(+{{ $order->items->count() - 1 }} more)</span>
+                                                @endif
+                                            @else
+                                                <span class="text-gray-400 italic">No service</span>
+                                            @endif
+                                        </div>
+                                        
+                                        {{-- Outlet Name --}}
+                                        <div class="text-xs text-gray-500 mt-1">
+                                            <i class="fas fa-store mr-1"></i>
+                                            {{ $order->outlet->name ?? 'No outlet' }}
+                                        </div>
                                     </div>
                                 </div>
                             </td>
+                            
+                            {{-- Details (Weight, Speed, Delivery) --}}
                             <td class="px-6 py-4">
                                 <div class="text-sm space-y-1">
+                                    {{-- Weight --}}
+                                    @if($order->total_weight)
                                     <div class="flex items-center text-gray-700">
-                                        <i class="fas fa-weight-hanging text-gray-400 mr-1 text-xs"></i>
-                                        <span class="font-semibold">{{ $order->total_weight }} kg</span>
+                                        <i class="fas fa-weight-hanging text-gray-400 mr-1 text-xs w-4"></i>
+                                        <span class="font-semibold">{{ number_format($order->total_weight, 1) }} kg</span>
                                     </div>
+                                    @else
+                                    <div class="flex items-center text-gray-400">
+                                        <i class="fas fa-weight-hanging text-gray-300 mr-1 text-xs w-4"></i>
+                                        <span class="text-xs italic">No weight</span>
+                                    </div>
+                                    @endif
+                                    
+                                    {{-- Service Speed --}}
+                                    @if($order->service_speed)
                                     <div class="flex items-center text-gray-600">
-                                        <i class="fas fa-tachometer-alt text-gray-400 mr-1 text-xs"></i>
-                                        <span class="text-xs">{{ ucfirst(str_replace('_', ' ', $order->service_speed)) }}</span>
+                                        <i class="fas fa-tachometer-alt text-gray-400 mr-1 text-xs w-4"></i>
+                                        <span class="text-xs capitalize">
+                                            {{ str_replace('_', ' ', $order->service_speed) }}
+                                        </span>
                                     </div>
+                                    @endif
+                                    
+                                    {{-- Delivery Method --}}
+                                    @if($order->delivery_method)
                                     <div class="flex items-center text-gray-600">
-                                        <i class="fas fa-truck text-gray-400 mr-1 text-xs"></i>
-                                        <span class="text-xs">{{ ucfirst(str_replace('_', ' ', $order->delivery_method)) }}</span>
+                                        <i class="fas {{ $order->delivery_method === 'walk_in' ? 'fa-walking' : 'fa-truck' }} text-gray-400 mr-1 text-xs w-4"></i>
+                                        <span class="text-xs capitalize">
+                                            {{ str_replace('_', ' ', $order->delivery_method) }}
+                                        </span>
                                     </div>
+                                    @endif
                                 </div>
                             </td>
-                            <td class="px-6 py-4">
-                                <div class="text-base font-bold text-blue-600">{{ $order->formatted_final_price }}</div>
-                                @if($order->discount_amount > 0)
-                                <div class="text-xs text-gray-500 line-through">{{ $order->formatted_total_price }}</div>
-                                <div class="text-xs text-green-600 font-semibold">
-                                    <i class="fas fa-tag mr-1"></i>-{{ $order->formatted_discount }}
-                                </div>
-                                @endif
-                            </td>
+                            
+                            {{-- Total Price --}}
                             <td class="px-6 py-4">
                                 <div class="space-y-1">
+                                    {{-- Final Price --}}
+                                    @if($order->final_price)
+                                    <div class="text-base font-bold text-blue-600">
+                                        Rp {{ number_format($order->final_price, 0, ',', '.') }}
+                                    </div>
+                                    @else
+                                    <div class="text-base font-bold text-gray-400">
+                                        Rp 0
+                                    </div>
+                                    @endif
+                                    
+                                    {{-- Original Price (if discount exists) --}}
+                                    @if($order->discount_amount > 0 && $order->total_price)
+                                    <div class="text-xs text-gray-500 line-through">
+                                        Rp {{ number_format($order->total_price, 0, ',', '.') }}
+                                    </div>
+                                    <div class="text-xs text-green-600 font-semibold">
+                                        <i class="fas fa-tag mr-1"></i>
+                                        -Rp {{ number_format($order->discount_amount, 0, ',', '.') }}
+                                    </div>
+                                    @endif
+                                    
+                                    {{-- Coupon Code (if used) --}}
+                                    @if($order->coupon_code)
+                                    <div class="text-xs text-purple-600 font-medium">
+                                        <i class="fas fa-ticket-alt mr-1"></i>
+                                        {{ $order->coupon_code }}
+                                    </div>
+                                    @endif
+                                </div>
+                            </td>
+                            
+                            {{-- Status --}}
+                            <td class="px-6 py-4">
+                                <div class="space-y-1">
+                                    {{-- Order Status --}}
                                     <span class="px-3 py-1 rounded-full text-xs font-semibold inline-block
                                         @if($order->status == 'completed') bg-green-100 text-green-700
                                         @elseif($order->status == 'processing') bg-blue-100 text-blue-700
@@ -162,6 +232,8 @@
                                         @endif">
                                         {{ ucfirst($order->status) }}
                                     </span>
+                                    
+                                    {{-- Payment Status --}}
                                     @if($order->payment_status == 'paid')
                                     <span class="px-2 py-1 rounded text-xs font-semibold bg-green-100 text-green-700 inline-block">
                                         <i class="fas fa-check-circle mr-1"></i>Paid
@@ -170,9 +242,15 @@
                                     <span class="px-2 py-1 rounded text-xs font-semibold bg-yellow-100 text-yellow-700 inline-block">
                                         <i class="fas fa-clock mr-1"></i>Unpaid
                                     </span>
+                                    @elseif($order->payment_status == 'failed')
+                                    <span class="px-2 py-1 rounded text-xs font-semibold bg-red-100 text-red-700 inline-block">
+                                        <i class="fas fa-times-circle mr-1"></i>Failed
+                                    </span>
                                     @endif
                                 </div>
                             </td>
+                            
+                            {{-- Date --}}
                             <td class="px-6 py-4">
                                 <div class="text-sm text-gray-700">
                                     {{ $order->created_at->format('d M Y') }}
@@ -181,18 +259,30 @@
                                     {{ $order->created_at->format('H:i') }}
                                 </div>
                             </td>
+                            
+                            {{-- Actions --}}
                             <td class="px-6 py-4">
                                 <div class="flex flex-col space-y-2">
+                                    {{-- Track Order --}}
                                     @if(in_array($order->delivery_method, ['pickup', 'delivery', 'pickup_delivery']))
-                                    <a href="{{ route('tracking') }}?order={{ $order->id }}" class="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center" title="Track Order">
+                                    <a href="{{ route('tracking') }}?order={{ $order->id }}" 
+                                       class="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center" 
+                                       title="Track Order">
                                         <i class="fas fa-map-marker-alt mr-1"></i>Track
                                     </a>
                                     @endif
-                                    <a href="{{ route('orders.show', $order->id) }}" class="text-gray-600 hover:text-gray-800 font-medium text-sm flex items-center" title="View Details">
+                                    
+                                    {{-- View Details --}}
+                                    <a href="{{ route('orders.show', $order->id) }}" 
+                                       class="text-gray-600 hover:text-gray-800 font-medium text-sm flex items-center" 
+                                       title="View Details">
                                         <i class="fas fa-eye mr-1"></i>Details
                                     </a>
+                                    
+                                    {{-- Reorder --}}
                                     @if($order->status == 'completed')
-                                    <button class="text-green-600 hover:text-green-800 font-medium text-sm text-left flex items-center" title="Order Again">
+                                    <button class="text-green-600 hover:text-green-800 font-medium text-sm text-left flex items-center" 
+                                            title="Order Again">
                                         <i class="fas fa-redo mr-1"></i>Reorder
                                     </button>
                                     @endif

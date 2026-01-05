@@ -286,96 +286,82 @@ class OrderResource extends Resource
         ->collapsible();
 }
 
-    protected static function getFreeServiceSection(): Section
-    {
-        return Section::make('Free Service Reward 🎁')
-            ->schema([
-                Placeholder::make('reward_eligibility')
-                    ->label('Reward Status')
-                    ->content(function (Get $get, $record) {
-                        $customerId = $get('customer_id');
-                        
-                        if (!$customerId) {
-                            return '⚠️ Only available for registered members';
-                        }
+protected static function getFreeServiceSection(): Section
+{
+    return Section::make('Free Service Reward 🎁')
+        ->schema([
+            Placeholder::make('reward_eligibility')
+                ->label('Reward Status')
+                ->content(function (Get $get) {
+                    $customerId = $get('customer_id');
+                    if (!$customerId) return '⚠️ Pilih pelanggan terlebih dahulu';
 
-                        $customer = Customer::find($customerId);
-                        
-                        if (!$customer) {
-                            return '❌ Customer not found';
-                        }
+                    $customer = \App\Models\Customer::find($customerId);
+                    if (!$customer || !$customer->isMember()) return '❌ Bukan Member';
 
-                        $completedOrders = $customer->orders()
-                            ->whereIn('status', ['completed', 'picked_up', 'in_delivery'])
-                            ->when($record?->id, function ($query, $orderId) {
-                                return $query->where('id', '!=', $orderId);
-                            })
-                            ->count();
+                    // Ambil jumlah kupon yang tersedia dari database
+                    $vouchers = $customer->available_coupons ?? 0;
+                    
+                    if ($vouchers >= 6) {
+                        $readyToClaim = floor($vouchers / 6);
+                        return "🎉 SIAP DIGUNAKAN! Pelanggan punya jatah {$readyToClaim}x cuci gratis.";
+                    }
 
-                        $progress = $completedOrders % 6;
-                        $ordersLeft = 6 - $progress;
-                        $percentage = ($progress / 6) * 100;
+                    // Hitung sisa kupon yang dibutuhkan untuk mencapai 6
+                    $needed = 6 - $vouchers;
+                    return "📊 Progres: {$vouchers}/6 kupon ({$needed} lagi untuk dapat reward gratis)";
+                })
+                ->columnSpanFull(),
 
-                        $statusText = $progress === 0 && $completedOrders >= 6 
-                            ? "🎉 ELIGIBLE FOR FREE SERVICE!" 
-                            : "📊 Progress: {$progress}/6 orders ({$ordersLeft} more to go)";
+            Toggle::make('is_free_service')
+                ->label('Terapkan Layanan Gratis')
+                ->live()
+                // LOGIKA UTAMA: Tombol MATI jika kupon di bawah 6
+                ->disabled(function (Get $get) {
+                    $customerId = $get('customer_id');
+                    if (!$customerId) return true;
 
-                        return "
-                            <div class='space-y-2'>
-                                <div class='font-semibold text-sm'>{$statusText}</div>
-                                <div class='w-full bg-gray-200 rounded-full h-3'>
-                                    <div class='bg-green-500 h-3 rounded-full transition-all' style='width: {$percentage}%'></div>
-                                </div>
-                            </div>
-                        ";
-                    })
-                    ->columnSpanFull(),
-
-                Toggle::make('is_free_service')
-                    ->label('Apply Free Service Reward')
-                    ->helperText('Enable this to make this order FREE (available after 6 completed orders)')
-                    ->live()
-                    ->visible(fn (Get $get): bool => $get('customer_type') === self::CUSTOMER_TYPE_MEMBER)
-                    ->disabled(function (Get $get, $record) {
-                        $customerId = $get('customer_id');
-                        
-                        if (!$customerId) return true;
-
-                        $customer = Customer::find($customerId);
-                        
-                        if (!$customer) return true;
-
-                        $completedOrders = $customer->orders()
-                            ->whereIn('status', ['completed', 'picked_up', 'in_delivery'])
-                            ->when($record?->id, function ($query, $orderId) {
-                                return $query->where('id', '!=', $orderId);
-                            })
-                            ->count();
-
-                        return ($completedOrders % 6) !== 0 || $completedOrders < 6;
-                    })
-                    ->afterStateUpdated(function (Set $set, Get $get, $state) {
+                    $customer = \App\Models\Customer::find($customerId);
+                    
+                    // Tombol mati jika bukan member atau kupon kurang dari 6
+                    return !$customer || $customer->available_coupons < 6;
+                })
+                // Memberi warna berbeda jika aktif
+                ->onColor('success')
+                ->afterStateUpdated(function (Set $set, Get $get, $state) {
+                    // Pastikan fungsi recalculatePricing Anda sudah menangani is_free_service
+                    if (method_exists(self::class, 'recalculatePricing')) {
                         self::recalculatePricing($set, $get);
-                        
-                        if ($state) {
-                            Notification::make()
-                                ->success()
-                                ->title('🎉 Free Service Applied!')
-                                ->body('This order is now FREE as a reward.')
-                                ->send();
-                        }
-                    }),
+                    }
+                    
+                    if ($state) {
+                        \Filament\Notifications\Notification::make()
+                            ->success()
+                            ->title('Reward Aktif!')
+                            ->body('Total harga akan otomatis menjadi Rp 0.')
+                            ->send();
+                    }
+                }),
 
-                Placeholder::make('free_service_note')
-                    ->label('')
-                    ->content('💡 **Note:** Free service is automatically applied for every 6th completed order. Toggle above to activate.')
-                    ->visible(fn (Get $get): bool => $get('customer_type') === self::CUSTOMER_TYPE_MEMBER)
-                    ->columnSpanFull(),
-            ])
-            ->columns(1)
-            ->visible(fn (Get $get): bool => $get('customer_type') === self::CUSTOMER_TYPE_MEMBER)
-            ->collapsible();
-    }
+            Placeholder::make('available_vouchers')
+                ->label('Saldo Kupon Aktif')
+                ->content(function (Get $get) {
+                    $customerId = $get('customer_id');
+                    if (!$customerId) return 'Pilih pelanggan';
+
+                    $customer = \App\Models\Customer::find($customerId);
+                    $voucherCount = $customer->available_coupons ?? 0;
+                    
+                    $icon = $voucherCount >= 6 ? '✅ 🎫' : '⏳ 🎫';
+                    return "{$icon} Total Saldo: {$voucherCount} Kupon";
+                })
+                ->columnSpanFull(),
+        ])
+        ->columns(1)
+        // Hanya tampilkan section ini jika tipe pelanggan adalah member
+        ->visible(fn (Get $get): bool => $get('customer_type') === 'member')
+        ->collapsible();
+}
 
    protected static function getOrderItemsRepeater(): Repeater
 {

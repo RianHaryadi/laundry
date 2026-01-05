@@ -133,7 +133,7 @@
                                 <a href="{{ route('profile.index') }}" class="flex items-center px-4 py-2.5 hover:bg-gray-50 text-gray-700 transition">
                                     <span>My Profile</span>
                                 </a>
-                                <a href="{{ route('orders.index') }}" class="flex items-center px-4 py-2.5 hover:bg-gray-50 text-gray-700 transition">
+                                <a href="{{ route('orders') }}" class="flex items-center px-4 py-2.5 hover:bg-gray-50 text-gray-700 transition">
                                     <span>My Orders</span>
                                 </a>
                                 <div class="border-t border-gray-100 mt-1 pt-1">
@@ -196,7 +196,7 @@
                         <a href="{{ route('profile.index') }}" class="block px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700">
                             My Profile
                         </a>
-                        <a href="{{ route('orders.index') }}" class="block px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700">
+                        <a href="{{ route('orders') }}" class="block px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700">
                             My Orders
                         </a>
                         <form action="{{ route('logout') }}" method="POST">

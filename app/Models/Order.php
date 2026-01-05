@@ -40,6 +40,7 @@ class Order extends Model
         'coupon_code',
         'coupon_earned', // TAMBAHAN: Track apakah sudah dapat kupon
         'reward_points', // TAMBAHAN: Poin reward untuk sistem kupon
+        'is_free_service' // TAMBAHAN: Tandai jika order adalah layanan gratis
     ];
 
     protected $casts = [
@@ -52,6 +53,7 @@ class Order extends Model
         'pickup_time' => 'datetime',
         'delivery_time' => 'datetime',
         'coupon_earned' => 'boolean', // TAMBAHAN
+        'is_free_service' => 'boolean', 
     ];
 
     /**
@@ -181,60 +183,6 @@ class Order extends Model
         return ($this->discount_amount / $this->total_price) * 100;
     }
 
-    /**
-     * Calculate and update order prices based on weight, service, coupon, and customer
-     */
-    public function calculatePrices(): void
-    {
-        if (!$this->service_id || !$this->total_weight) {
-            return;
-        }
-
-        $service = $this->service;
-        if (!$service) {
-            return;
-        }
-
-        // 1. Calculate base price
-        $pricePerKg = $service->price_per_kg ?? $service->base_price;
-        $basePrice = $this->total_weight * $pricePerKg;
-        $this->base_price = round($basePrice, 2);
-
-        // 2. Apply multipliers
-        $speedMultiplier = $this->getSpeedMultiplier();
-        $deliveryMultiplier = $this->getDeliveryMultiplier();
-        $subtotal = $basePrice * $speedMultiplier * $deliveryMultiplier;
-
-        // 3. Calculate pickup/delivery fee
-        $pickupDeliveryFee = 0; 
-
-        // 4. LOGIC DISKON (Updated: Coupon vs Membership)
-        $discountAmount = 0;
-        $discountType = null;
-
-        // A. Cek Kupon Dulu (Prioritas Utama)
-        if ($this->coupon_id) {
-            $coupon = Coupon::find($this->coupon_id);
-            if ($coupon) {
-                $discountAmount = $coupon->calculateDiscount($subtotal);
-                $discountType = 'coupon';
-            }
-        }
-        // B. Jika tidak ada kupon, cek Membership
-        elseif ($this->customer && $this->customer->isMember()) {
-            // Membership tidak memberikan diskon otomatis lagi
-            // Member hanya mendapat kupon setelah selesai transaksi
-            $discountAmount = 0;
-            $discountType = null;
-        }
-
-        // 5. Update prices
-        $this->total_price = round($subtotal, 2);
-        $this->discount_amount = round($discountAmount, 2);
-        $this->pickup_delivery_fee = round($pickupDeliveryFee, 2);
-        $this->final_price = round($subtotal - $discountAmount + $pickupDeliveryFee, 2);
-        $this->discount_type = $discountAmount > 0 ? $discountType : null;
-    }
 
     public function getSpeedMultiplier(): float
     {
@@ -475,252 +423,176 @@ class Order extends Model
     
     // --- Boot & Sync ---
 
-    public function syncPaymentStatus(): void
+protected static function boot()
     {
-        $payment = $this->payments()->latest()->first();
-        if (!$payment) return;
+        parent::boot();
 
-        // 1. Sync Amount if pending
-        if ($this->wasChanged('final_price') && $payment->status === 'pending') {
-            $payment->amount = $this->final_price ?? $this->total_price;
-        }
+        // 1. SEBELUM CREATE: Kalkulasi harga
+        static::creating(function ($order) {
+            $order->calculatePrices();
+        });
 
-        // 2. Sync Status
-        if ($this->wasChanged('payment_status')) {
-            $newStatus = match ($this->payment_status) {
-                'paid' => 'success',
-                'failed' => 'failed',
-                'refunded' => 'refunded',
-                default => 'pending',
-            };
-
-            $payment->status = $newStatus;
-            if ($newStatus === 'success' && !$payment->paid_at) {
-                $payment->paid_at = now();
-            } else if ($newStatus !== 'success') {
-                $payment->paid_at = null;
+        // 2. SETELAH CREATE: Logika Reset Kupon & Record Awal
+        static::created(function ($order) {
+            // Jika pakai Free Service, jatah 6 kupon langsung hangus (reset ke 0)
+            if ($order->is_free_service && $order->customer_id && $order->customer_type === 'member') {
+            $customer = $order->customer;
+            if ($customer && $customer->available_coupons >= 6) {
+                // Kurangi 6 dari total yang ada, jangan di-nol kan
+                $customer->decrement('available_coupons', 6);
+                \Log::info("Free Service digunakan. Kupon Customer #{$customer->id} dikurangi 6. Sisa: {$customer->available_coupons}");
             }
+            $order->updateQuietly(['coupon_earned' => true]);
         }
+            // Buat record pembayaran awal
+            $order->createInitialPaymentRecord();
 
-        if ($payment->isDirty()) {
-            $payment->save();
+            // Buat tracking jika perlu
+            if (in_array($order->delivery_method, ['pickup', 'delivery', 'pickup_delivery'])) {
+                $order->createInitialTracking();
+            }
+        });
+
+        // 3. SAAT UPDATE: Hitung ulang jika data krusial berubah
+        static::updating(function ($order) {
+            if ($order->isDirty(['service_id', 'total_weight', 'service_speed', 'delivery_method', 'coupon_id', 'is_free_service'])) {
+                $order->calculatePrices();
+            }
+        });
+
+        // 4. SETELAH UPDATE: Sync Status & Cek Reward
+        static::updated(function ($order) {
+            $order->syncPaymentStatus();
+
+            // Sync Tracking Status otomatis
+            if ($order->wasChanged('status')) {
+                $order->syncTrackingWithOrderStatus();
+            }
+
+            // Cek apakah dapet reward (Setiap 6 kali cuci berbayar)
+            if ($order->wasChanged('status') && $order->status === 'completed') {
+                $order->handleRewardSystem();
+            }
+        });
+    }
+
+    public function calculatePrices(): void
+    {
+        $service = $this->service;
+        if (!$service || !$this->total_weight) return;
+
+        // 1. Hitung Base Price (Harga dasar x Berat)
+        $pricePerKg = $service->price_per_kg ?? $service->base_price;
+        $this->base_price = round($this->total_weight * $pricePerKg, 2);
+
+        // 2. Hitung Total Price dengan Multiplier (Speed & Delivery)
+        // Menggunakan method multiplier yang sudah ada agar konsisten
+        $subtotal = $this->base_price * $this->getSpeedMultiplier() * $this->getDeliveryMultiplier();
+        $this->total_price = round($subtotal, 2);
+
+        // 3. Logika Diskon & Free Service
+        if ($this->is_free_service) {
+            $this->discount_amount = $this->total_price;
+            $this->final_price = 0;
+            $this->discount_type = 'free_service';
+        } else {
+            $discountAmount = 0;
+            if ($this->coupon_id && ($coupon = Coupon::find($this->coupon_id))) {
+                $discountAmount = $coupon->calculateDiscount($this->total_price);
+            }
+            $this->discount_amount = round($discountAmount, 2);
+            $this->final_price = round($this->total_price - $discountAmount, 2);
+            $this->discount_type = $discountAmount > 0 ? 'coupon' : null;
         }
     }
 
-    protected static function boot()
-{
-    parent::boot();
+    /**
+     * Menangani sistem reward (6x cuci gratis 1)
+     */
+    protected function handleRewardSystem(): void
+    {
+        $customer = $this->customer;
+        if ($customer && $this->customer_type === 'member' && !$this->coupon_earned) {
+            
+            // Hitung hanya order BERBAYAR yang sudah COMPLETED
+            $paidOrdersCount = $customer->orders()
+                ->where('status', 'completed')
+                ->where('is_free_service', false)
+                ->count();
 
-    // 1. Auto Calculate at Create
-    static::creating(function ($order) {
-        if (!$order->base_price && $order->service_id && $order->total_weight) {
-            $order->calculatePrices();
+            if ($paidOrdersCount > 0 && $paidOrdersCount % 6 === 0) {
+                try {
+                    // Tambahkan 6 ke jatah yang sudah ada (Stacking)
+                    $customer->increment('available_coupons', 6);
+                    $this->updateQuietly(['coupon_earned' => true]);
+
+                    if (class_exists('\Filament\Notifications\Notification')) {
+                        \Filament\Notifications\Notification::make()
+                            ->success()
+                            ->title('🎉 Reward 6x Cuci Tercapai!')
+                            ->body("Pelanggan {$customer->name} mendapat tambahan jatah GRATIS!")
+                            ->send();
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("Gagal reward: " . $e->getMessage());
+                }
+            } else {
+                $this->updateQuietly(['coupon_earned' => true]);
+            }
         }
-    });
+    }
 
-    // 2. Auto create payment & tracking
-    static::created(function ($order) {
-        // Create Payment Record
-        $gateway = $order->payment_gateway ?? 'cash';
-        $status = $order->payment_status ?? 'pending';
-        $paymentStatus = match ($status) {
+    // ==========================================
+    // HELPERS & SYNC
+    // ==========================================
+
+    public function syncPaymentStatus(): void
+    {
+        $payment = $this->payments()->latest()->first();
+        if (!$payment || !$this->wasChanged('payment_status')) return;
+
+        $newStatus = match ($this->payment_status) {
             'paid' => 'success',
             'failed' => 'failed',
             'refunded' => 'refunded',
             default => 'pending',
         };
 
-        $order->payments()->create([
-            'amount' => $order->final_price ?? $order->total_price ?? 0,
-            'gateway' => $gateway,
-            'status' => $paymentStatus,
-            'transaction_id' => 'TRX-' . date('Ymd') . '-' . str_pad($order->id, 5, '0', STR_PAD_LEFT),
-            'paid_at' => ($paymentStatus === 'success') ? now() : null,
-            'notes' => 'Auto-generated from Order creation',
+        $payment->update([
+            'status' => $newStatus,
+            'paid_at' => ($newStatus === 'success') ? now() : null
         ]);
+    }
 
-        // Increment coupon usage
-        if ($order->coupon_id) {
-            $coupon = \App\Models\Coupon::find($order->coupon_id);
-            if ($coupon) $coupon->incrementUsage();
-        }
+    public function createInitialPaymentRecord()
+    {
+        return $this->payments()->create([
+            'amount' => $this->final_price ?? 0,
+            'gateway' => $this->payment_gateway ?? 'cash',
+            'status' => $this->payment_status === 'paid' ? 'success' : 'pending',
+            'transaction_id' => 'TRX-' . date('Ymd') . '-' . strtoupper(uniqid()),
+        ]);
+    }
 
-        // ✅ AUTO-CREATE TRACKING untuk pickup/delivery
-        if (in_array($order->delivery_method, ['pickup', 'delivery', 'pickup_delivery'])) {
-            $order->createInitialTracking();
-        }
-    });
+    public function syncTrackingWithOrderStatus(): void
+    {
+        $trackingStatus = match($this->status) {
+            'ready', 'picked_up' => 'picked_up',
+            'in_delivery' => 'in_transit',
+            'completed' => 'delivered',
+            'cancelled' => 'failed',
+            default => null,
+        };
 
-    // 3. Recalculate price on change
-    static::updating(function ($order) {
-        if ($order->isDirty(['service_id', 'total_weight', 'service_speed', 'delivery_method', 'customer_id', 'coupon_id'])) {
-            $order->calculatePrices();
-        }
-    });
-
-    // 4. Handle tracking creation & reward after update
-    static::updated(function ($order) {
-        // Sync payment status
-        $order->syncPaymentStatus();
-
-        // ✅ CREATE TRACKING jika delivery_method berubah ke pickup/delivery
-        if ($order->wasChanged('delivery_method')) {
-            $needsTracking = in_array($order->delivery_method, ['pickup', 'delivery', 'pickup_delivery']);
-            $hadTracking = in_array($order->getOriginal('delivery_method'), ['pickup', 'delivery', 'pickup_delivery']);
-            
-            // Buat tracking baru jika berubah dari walk_in ke pickup/delivery
-            if ($needsTracking && !$hadTracking) {
-                $order->createInitialTracking();
-            }
-            
-            // Hapus tracking jika berubah ke walk_in (opsional)
-            if (!$needsTracking && $hadTracking) {
-                // Uncomment jika ingin auto-delete tracking saat ganti ke walk_in
-                // $order->trackings()->delete();
-                \Log::info("Order #{$order->id}: Changed to walk_in, tracking preserved");
-            }
-        }
-
-        // ✅ UPDATE TRACKING STATUS jika order status berubah
-        if ($order->wasChanged('status') && in_array($order->delivery_method, ['pickup', 'delivery', 'pickup_delivery'])) {
-            $trackingStatus = match($order->status) {
-                'confirmed' => 'pending',
-                'processing' => 'pending',
-                'ready' => 'picked_up',
-                'picked_up' => 'picked_up',
-                'in_delivery' => 'in_transit',
-                'completed' => 'delivered',
-                'cancelled' => 'failed',
-                default => null,
-            };
-
-            if ($trackingStatus) {
-                $order->updateTrackingStatus($trackingStatus);
-            }
-        }
-
-        // ✅ Reward kupon ketika payment_status berubah jadi PAID
-        if ($order->wasChanged('payment_status') && $order->payment_status === 'paid') {
-            $customer = $order->customer;
-            if (!$customer) return;
-
-            // Cek apakah order ini sudah pernah kasih kupon
-            if ($order->coupon_earned) return;
-
-            // Tambah 1 poin
-            $customer->reward_points += 1;
-
-            // Jika sudah 6 → buat kupon gratis
-            if ($customer->reward_points >= 6) {
-                \App\Models\Coupon::create([
-                    'code' => 'FREE-' . strtoupper(uniqid()),
-                    'customer_id' => $customer->id,
-                    'discount_type' => 'percentage',
-                    'discount_value' => 100,
-                    'min_spend' => 0,
-                    'usage_limit' => 1,
-                    'expires_at' => now()->addMonths(3),
+        if ($trackingStatus) {
+            $latestTracking = $this->trackings()->latest()->first();
+            if ($latestTracking) {
+                $latestTracking->update([
+                    'status' => $trackingStatus,
+                    'notes' => "Status berubah otomatis menjadi {$trackingStatus}",
+                    'updated_at' => now(),
                 ]);
-
-                $customer->reward_points = 0;
-
-                // Send notification
-                \Filament\Notifications\Notification::make()
-                    ->success()
-                    ->title('🎉 Free Coupon Earned!')
-                    ->body("Customer {$customer->name} received a FREE service coupon!")
-                    ->send();
             }
-
-            $customer->save();
-
-            // Tandai sudah memberikan reward
-            $order->updateQuietly(['coupon_earned' => true]);
         }
-    });
-
-    // 5. Clean up relations on delete (opsional)
-    static::deleting(function ($order) {
-        // Delete related trackings
-        $order->trackings()->delete();
-        
-        \Log::info("Order #{$order->id}: Deleted with all tracking records");
-    });
-}
-/**
- * Create initial tracking record for pickup/delivery orders
- */
-public function createInitialTracking(): void
-{
-    // Pastikan ada courier_id
-    if (!$this->courier_id) {
-        \Log::warning("Order #{$this->id}: Cannot create tracking without courier_id");
-        return;
     }
-
-    // Cek apakah sudah ada tracking untuk order ini
-    if ($this->trackings()->exists()) {
-        \Log::info("Order #{$this->id}: Tracking already exists, skipping creation");
-        return;
-    }
-
-    // Tentukan initial status berdasarkan delivery method
-    $initialStatus = 'pending';
-    $notes = match($this->delivery_method) {
-        'pickup' => 'Waiting for pickup from customer',
-        'delivery' => 'Ready for delivery to customer',
-        'pickup_delivery' => 'Waiting for pickup, then delivery',
-        default => 'Order tracking initialized',
-    };
-
-    // Buat tracking record
-    try {
-        $tracking = $this->trackings()->create([
-            'courier_id' => $this->courier_id,
-            'status' => $initialStatus,
-            'latitude' => null,
-            'longitude' => null,
-            'notes' => $notes,
-        ]);
-
-        \Log::info("Order #{$this->id}: Tracking #{$tracking->id} created successfully with status '{$initialStatus}'");
-
-        // Send notification (opsional)
-        \Filament\Notifications\Notification::make()
-            ->success()
-            ->title('📍 Tracking Created')
-            ->body("Tracking record created for Order #{$this->formatted_id}")
-            ->send();
-
-    } catch (\Exception $e) {
-        \Log::error("Order #{$this->id}: Failed to create tracking - {$e->getMessage()}");
-    }
-}
-
-/**
- * Update tracking status based on order status
- */
-public function updateTrackingStatus(string $trackingStatus, ?string $notes = null): void
-{
-    $latestTracking = $this->trackings()->latest()->first();
-
-    if (!$latestTracking) {
-        \Log::warning("Order #{$this->id}: No tracking found to update");
-        return;
-    }
-
-    try {
-        $latestTracking->update([
-            'status' => $trackingStatus,
-            'notes' => $notes ?? "Order status changed to {$this->status}, tracking updated to {$trackingStatus}",
-            'updated_at' => now(),
-        ]);
-
-        \Log::info("Order #{$this->id}: Tracking #{$latestTracking->id} updated to '{$trackingStatus}'");
-
-    } catch (\Exception $e) {
-        \Log::error("Order #{$this->id}: Failed to update tracking - {$e->getMessage()}");
-    }
-}
-
 }

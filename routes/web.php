@@ -49,7 +49,7 @@ Route::middleware('auth:customer')->group(function () {
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
     
     // Orders Management
-    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     
     // Order Invoice

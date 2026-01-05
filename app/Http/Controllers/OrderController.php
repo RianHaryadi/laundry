@@ -17,6 +17,10 @@ class OrderController extends Controller
     {
         $user = Auth::user();
         
+        // Get filter parameters
+        $status = $request->get('status', 'all');
+        $search = $request->get('search', '');
+        
         // Get customer ID
         $hasUserId = Schema::hasColumn('customers', 'user_id');
         
@@ -30,26 +34,44 @@ class OrderController extends Controller
             // No customer found, show empty orders
             $orders = collect([]);
             $stats = [
-                'total' => 0,
+                'all' => 0,
                 'pending' => 0,
+                'confirmed' => 0,
+                'processing' => 0,
+                'ready' => 0,
                 'completed' => 0,
                 'cancelled' => 0,
             ];
         } else {
-            // Get orders with filters
+            // ✅ Get orders with PROPER eager loading
             $query = Order::where('customer_id', $customer->id)
-                ->with(['service', 'outlet', 'courier', 'latestTracking']);
+                ->with([
+                    'service',              // Load direct service relation
+                    'outlet',               // Load outlet relation
+                    'items.service',        // Load items with their services
+                    'courier',              // Load courier
+                    'latestTracking',       // Load latest tracking
+                    'coupon'                // Load coupon if exists
+                ]);
             
             // Filter by status
-            if ($request->has('status') && $request->status != 'all') {
-                $query->where('status', $request->status);
+            if ($status && $status != 'all') {
+                $query->where('status', $status);
             }
             
             // Search
-            if ($request->has('search') && $request->search) {
-                $query->where(function($q) use ($request) {
-                    $q->where('id', 'like', '%' . $request->search . '%')
-                      ->orWhere('invoice_number', 'like', '%' . $request->search . '%');
+            if ($search) {
+                $query->where(function($q) use ($search) {
+                    $q->where('id', 'like', '%' . $search . '%')
+                      ->orWhere('invoice_number', 'like', '%' . $search . '%')
+                      // Search in direct service relation
+                      ->orWhereHas('service', function($q) use ($search) {
+                          $q->where('name', 'like', '%' . $search . '%');
+                      })
+                      // Search in items.service relation
+                      ->orWhereHas('items.service', function($q) use ($search) {
+                          $q->where('name', 'like', '%' . $search . '%');
+                      });
                 });
             }
             
@@ -59,13 +81,22 @@ class OrderController extends Controller
             $query->orderBy($sortBy, $sortDir);
             
             // Paginate
-            $orders = $query->paginate(15);
+            $orders = $query->paginate(15)->appends($request->except('page'));
             
-            // Get statistics
+            // Get statistics for all status types
             $stats = [
-                'total' => Order::where('customer_id', $customer->id)->count(),
+                'all' => Order::where('customer_id', $customer->id)->count(),
                 'pending' => Order::where('customer_id', $customer->id)
-                    ->whereIn('status', ['pending', 'confirmed', 'processing'])
+                    ->where('status', 'pending')
+                    ->count(),
+                'confirmed' => Order::where('customer_id', $customer->id)
+                    ->where('status', 'confirmed')
+                    ->count(),
+                'processing' => Order::where('customer_id', $customer->id)
+                    ->where('status', 'processing')
+                    ->count(),
+                'ready' => Order::where('customer_id', $customer->id)
+                    ->where('status', 'ready')
                     ->count(),
                 'completed' => Order::where('customer_id', $customer->id)
                     ->where('status', 'completed')
@@ -76,7 +107,7 @@ class OrderController extends Controller
             ];
         }
         
-        return view('orders.index', compact('orders', 'stats'));
+        return view('orders.index', compact('orders', 'stats', 'status', 'search'));
     }
     
     /**
@@ -100,13 +131,14 @@ class OrderController extends Controller
             abort(403, 'Unauthorized access to this order.');
         }
         
-        // Load relationships
+        // ✅ Load all necessary relationships
         $order->load([
             'service',
+            'items.service',
             'outlet',
             'customer',
             'courier',
-            'items',
+            'coupon',
             'trackings' => function($query) {
                 $query->orderBy('created_at', 'desc');
             },
