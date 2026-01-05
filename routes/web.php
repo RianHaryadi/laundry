@@ -18,6 +18,7 @@ use App\Http\Controllers\CustomerController;
 
 // Public Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/services', [HomeController::class, 'allServices'])->name('services.index');
 Route::get('/tracking', [TrackingController::class, 'index'])->name('tracking');
 Route::post('/tracking/search', [TrackingController::class, 'search'])->name('tracking.search');
 Route::get('/track-order', [HomeController::class, 'track'])->name('order.track');

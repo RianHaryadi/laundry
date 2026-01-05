@@ -8,10 +8,21 @@ use App\Models\Service;
 
 class HomeController extends Controller
 {
-    public function index()
+ public function index()
+{
+    // Ambil 3 untuk section "Layanan Premium"
+    $premiumServices = Service::where('is_active', true)->take(4)->get();
+
+    // Ambil 4 berikutnya untuk section "Harga" (melewati 3 pertama)
+    $pricingServices = Service::where('is_active', true)->skip(3)->take(3)->get();
+
+    return view('home', compact('premiumServices', 'pricingServices'));
+}
+
+    public function allServices()
     {
-        $services = Service::where('is_active', true)->take(3)->get();
-        return view('home', compact('services'));
+        $services = Service::where('is_active', true)->get();
+        return view('services.index', compact('services'));
     }
 
     public function track(Request $request)

@@ -10,9 +10,11 @@
                     <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">Layanan <span class="text-yellow-300">Laundry</span> Profesional di Depan Pintu Anda</h1>
                     <p class="text-xl mb-8 opacity-90 max-w-2xl">Kami menjemput, mencuci, dan mengantar pakaian Anda dengan penuh perhatian. Hemat waktu dan nikmati pakaian bersih serta wangi tanpa repot. Kepuasan 100% terjamin.</p>
                     <div class="flex flex-col sm:flex-row gap-4">
-                        <button class="btn-primary px-8 py-4 rounded-xl font-semibold text-lg flex items-center justify-center text-white">
-                            <i class="fas fa-calendar-alt mr-3"></i> Jadwalkan Penjemputan Sekarang
-                        </button>
+                        <a href="{{ route('booking') }}" class="inline-block">
+                            <button class="btn-primary px-8 py-4 rounded-xl font-semibold text-lg flex items-center justify-center text-white">
+                                <i class="fas fa-calendar-alt mr-3"></i> Jadwalkan Penjemputan Sekarang
+                            </button>
+                        </a>
                     </div>
                     <div class="flex flex-wrap gap-6 mt-12">
                         <div class="flex items-center">
@@ -174,7 +176,7 @@
 
         <!-- Services Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            @foreach($services as $index => $service)
+           @foreach($pricingServices as $index => $service) 
                 @php
                     // Skema warna untuk setiap layanan
                     $colors = [
@@ -286,10 +288,11 @@
                         </div>
                         
                         <!-- Action Button -->
-                        <button class="w-full {{ $color['buttonBg'] }} py-3.5 rounded-2xl font-semibold text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
-                            <i class="fas fa-shopping-cart"></i>
-                            <span>Tambah Layanan</span>
-                        </button>
+                        <a href="{{ route('booking', ['service_id' => $service->id]) }}" 
+                            class="w-full {{ $color['buttonBg'] }} py-3.5 rounded-2xl font-semibold text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
+                                <i class="fas fa-calendar-check"></i>
+                                <span>Pesan Sekarang</span>
+                            </a>
                     </div>
                 </div>
             @endforeach
@@ -486,320 +489,44 @@
 <section id="pricing" class="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-            <h2 class="text-4xl font-bold mb-4 text-gray-800">Harga <span class="gradient-text">Terjangkau</span> untuk Semua</h2>
-            <p class="text-gray-600 max-w-3xl mx-auto text-lg">Bayar sesuai pemakaian tanpa komitmen, atau hemat lebih dengan paket membership kami</p>
+            <h2 class="text-4xl font-bold mb-4 text-gray-800">Layanan <span class="gradient-text">Laundry</span> Kami</h2>
+            <p class="text-gray-600 max-w-3xl mx-auto text-lg">Pilih layanan yang sesuai dengan kebutuhan Anda dengan harga transparan</p>
         </div>
 
-        <!-- Toggle Switch -->
-        <div class="flex justify-center mb-12">
-            <div class="inline-flex items-center bg-white rounded-full p-2 shadow-lg">
-                <button onclick="switchPricing('payg')" id="paygBtn" class="pricing-toggle active px-8 py-3 rounded-full font-semibold transition-all">
-                    Bayar per Pakai
-                </button>
-                <button onclick="switchPricing('membership')" id="memberBtn" class="pricing-toggle px-8 py-3 rounded-full font-semibold transition-all">
-                    Paket Membership
-                    <span class="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Hemat 20%</span>
-                </button>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            @foreach($premiumServices as $index => $service)
+            @php
+                // Array warna agar tampilan bervariasi
+                $colors = ['blue', 'purple', 'orange', 'pink'];
+                $color = $colors[$index % 4];
+            @endphp
+            
+            <div class="pricing-card-modern group">
+                <div class="icon-wrapper bg-gradient-to-br from-{{$color}}-400 to-{{$color}}-600">
+                    <i class="fas {{ $service->pricing_type == 'kg' ? 'fa-weight-hanging' : 'fa-tshirt' }} text-white text-3xl"></i>
+                </div>
+                
+                <h3 class="text-xl font-bold text-gray-800 mb-2">{{ $service->name }}</h3>
+                <p class="text-gray-600 text-sm mb-4 line-clamp-2">{{ $service->description }}</p>
+                
+                <div class="price-tag">
+                    <span class="text-3xl font-bold text-gray-800">
+                        Rp {{ number_format($service->pricing_type == 'kg' ? $service->price_per_kg : $service->price_per_unit, 0, ',', '.') }}
+                    </span>
+                    <span class="text-gray-600 text-sm">/{{ $service->pricing_type }}</span>
+                </div>
+                 <a href="{{ route('booking', ['service_id' => $service->id]) }}" 
+                class="w-full inline-block text-center bg-{{$color}}-600 hover:bg-{{$color}}-700 text-white py-3 rounded-xl font-semibold transition-all transform group-hover:scale-105">
+                    Pesan Sekarang
+                </a>
             </div>
+            @endforeach
         </div>
 
-        <!-- Pay as You Go Content -->
-        <div id="paygContent" class="pricing-content active">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                <!-- Wash & Fold Card -->
-                <div class="pricing-card-modern group">
-                    <div class="icon-wrapper bg-gradient-to-br from-blue-400 to-blue-600">
-                        <i class="fas fa-tshirt text-white text-3xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Cuci & Lipat</h3>
-                    <p class="text-gray-600 text-sm mb-4">Layanan laundry sehari-hari</p>
-                    <div class="price-tag">
-                        <span class="text-4xl font-bold text-gray-800">Rp 7K</span>
-                        <span class="text-gray-600">/kg</span>
-                    </div>
-                    <p class="text-sm text-gray-500 mb-4">Min. 3kg</p>
-                    <ul class="space-y-2 mb-6 text-sm">
-                        <li class="flex items-center text-gray-700">
-                            <i class="fas fa-check text-blue-600 mr-2 text-xs"></i>
-                            <span>Selesai 24-48 jam</span>
-                        </li>
-                        <li class="flex items-center text-gray-700">
-                            <i class="fas fa-check text-blue-600 mr-2 text-xs"></i>
-                            <span>Wangi & bersih</span>
-                        </li>
-                        <li class="flex items-center text-gray-700">
-                            <i class="fas fa-check text-blue-600 mr-2 text-xs"></i>
-                            <span>Dilipat rapi</span>
-                        </li>
-                    </ul>
-                    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition-all transform group-hover:scale-105">
-                        Pilih Layanan
-                    </button>
-                </div>
-
-                <!-- Dry Clean Card -->
-                <div class="pricing-card-modern group">
-                    <div class="icon-wrapper bg-gradient-to-br from-purple-400 to-purple-600">
-                        <i class="fas fa-spray-can text-white text-3xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Dry Clean</h3>
-                    <p class="text-gray-600 text-sm mb-4">Pakaian formal & bahan delicate</p>
-                    <div class="price-tag">
-                        <span class="text-4xl font-bold text-gray-800">Rp 25K</span>
-                        <span class="text-gray-600">/pcs</span>
-                    </div>
-                    <p class="text-sm text-gray-500 mb-4">Mulai dari</p>
-                    <ul class="space-y-2 mb-6 text-sm">
-                        <li class="flex items-center text-gray-700">
-                            <i class="fas fa-check text-purple-600 mr-2 text-xs"></i>
-                            <span>Tanpa air</span>
-                        </li>
-                        <li class="flex items-center text-gray-700">
-                            <i class="fas fa-check text-purple-600 mr-2 text-xs"></i>
-                            <span>Pressing gratis</span>
-                        </li>
-                        <li class="flex items-center text-gray-700">
-                            <i class="fas fa-check text-purple-600 mr-2 text-xs"></i>
-                            <span>Aman untuk bahan sensitif</span>
-                        </li>
-                    </ul>
-                    <button class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-semibold transition-all transform group-hover:scale-105">
-                        Pilih Layanan
-                    </button>
-                </div>
-
-                <!-- Express Card -->
-                <div class="pricing-card-modern group">
-                    <div class="icon-wrapper bg-gradient-to-br from-orange-400 to-orange-600">
-                        <i class="fas fa-bolt text-white text-3xl"></i>
-                    </div>
-                    <div class="absolute top-4 right-4 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                        CEPAT
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Express 6 Jam</h3>
-                    <p class="text-gray-600 text-sm mb-4">Butuh cepat? Kami siap!</p>
-                    <div class="price-tag">
-                        <span class="text-4xl font-bold text-gray-800">Rp 12K</span>
-                        <span class="text-gray-600">/kg</span>
-                    </div>
-                    <p class="text-sm text-gray-500 mb-4">Min. 3kg</p>
-                    <ul class="space-y-2 mb-6 text-sm">
-                        <li class="flex items-center text-gray-700">
-                            <i class="fas fa-check text-orange-600 mr-2 text-xs"></i>
-                            <span>Selesai 6 jam</span>
-                        </li>
-                        <li class="flex items-center text-gray-700">
-                            <i class="fas fa-check text-orange-600 mr-2 text-xs"></i>
-                            <span>Prioritas tinggi</span>
-                        </li>
-                        <li class="flex items-center text-gray-700">
-                            <i class="fas fa-check text-orange-600 mr-2 text-xs"></i>
-                            <span>Pengantaran hari yang sama</span>
-                        </li>
-                    </ul>
-                    <button class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-semibold transition-all transform group-hover:scale-105">
-                        Pilih Layanan
-                    </button>
-                </div>
-
-                <!-- Premium Care Card -->
-                <div class="pricing-card-modern group">
-                    <div class="icon-wrapper bg-gradient-to-br from-pink-400 to-pink-600">
-                        <i class="fas fa-gem text-white text-3xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Perawatan Premium</h3>
-                    <p class="text-gray-600 text-sm mb-4">Sepatu, tas & perlengkapan tidur</p>
-                    <div class="price-tag">
-                        <span class="text-4xl font-bold text-gray-800">Rp 35K</span>
-                        <span class="text-gray-600">/pcs</span>
-                    </div>
-                    <p class="text-sm text-gray-500 mb-4">Mulai dari</p>
-                    <ul class="space-y-2 mb-6 text-sm">
-                        <li class="flex items-center text-gray-700">
-                            <i class="fas fa-check text-pink-600 mr-2 text-xs"></i>
-                            <span>Pembersihan mendalam</span>
-                        </li>
-                        <li class="flex items-center text-gray-700">
-                            <i class="fas fa-check text-pink-600 mr-2 text-xs"></i>
-                            <span>Perawatan khusus</span>
-                        </li>
-                        <li class="flex items-center text-gray-700">
-                            <i class="fas fa-check text-pink-600 mr-2 text-xs"></i>
-                            <span>Treatment profesional</span>
-                        </li>
-                    </ul>
-                    <button class="w-full bg-pink-600 hover:bg-pink-700 text-white py-3 rounded-xl font-semibold transition-all transform group-hover:scale-105">
-                        Pilih Layanan
-                    </button>
-                </div>
-            </div>
-
-            <!-- Additional Services -->
-            <div class="bg-white rounded-2xl p-8 shadow-lg">
-                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Layanan Tambahan</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="flex items-center p-4 bg-gray-50 rounded-xl">
-                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
-                            <i class="fas fa-map-marker-alt text-blue-600"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-gray-800">Antar Jemput</h4>
-                            <p class="text-sm text-gray-600">Gratis radius 5km</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center p-4 bg-gray-50 rounded-xl">
-                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
-                            <i class="fas fa-shield-alt text-green-600"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-gray-800">Garansi 100%</h4>
-                            <p class="text-sm text-gray-600">Puas atau uang kembali</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center p-4 bg-gray-50 rounded-xl">
-                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
-                            <i class="fas fa-star text-purple-600"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-gray-800">Reward Kupon</h4>
-                            <p class="text-sm text-gray-600">Dapat kupon setiap transaksi</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Membership Plans Content -->
-        <div id="memberContent" class="pricing-content">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                <!-- Basic Plan -->
-                <div class="membership-card">
-                    <div class="p-8">
-                        <h3 class="text-2xl font-bold text-gray-800 mb-2">Basic</h3>
-                        <p class="text-gray-600 mb-6">Untuk pengguna reguler</p>
-                        <div class="mb-6">
-                            <span class="text-5xl font-bold text-gray-800">Rp 199K</span>
-                            <span class="text-gray-600">/bulan</span>
-                        </div>
-                        <div class="bg-blue-50 rounded-xl p-4 mb-6">
-                            <p class="text-sm text-blue-800 font-semibold">Hemat Rp 70K per bulan!</p>
-                        </div>
-                        <ul class="space-y-3 mb-8">
-                            <li class="flex items-start">
-                                <i class="fas fa-check-circle text-blue-600 mr-3 mt-1"></i>
-                                <span class="text-gray-700">20kg Cuci & Lipat</span>
-                            </li>
-                            <li class="flex items-start">
-                                <i class="fas fa-check-circle text-blue-600 mr-3 mt-1"></i>
-                                <span class="text-gray-700">Antar jemput unlimited gratis</span>
-                            </li>
-                            <li class="flex items-start">
-                                <i class="fas fa-check-circle text-blue-600 mr-3 mt-1"></i>
-                                <span class="text-gray-700">Diskon 10% layanan lain</span>
-                            </li>
-                            <li class="flex items-start">
-                                <i class="fas fa-check-circle text-blue-600 mr-3 mt-1"></i>
-                                <span class="text-gray-700">Prioritas customer service</span>
-                            </li>
-                        </ul>
-                        <button class="w-full bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white py-4 rounded-xl font-semibold transition-all">
-                            Pilih Paket
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Premium Plan - Featured -->
-                <div class="membership-card featured">
-                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-6 py-2 rounded-full font-bold text-sm shadow-lg">
-                        PALING POPULER
-                    </div>
-                    <div class="p-8">
-                        <h3 class="text-2xl font-bold text-white mb-2">Premium</h3>
-                        <p class="text-blue-100 mb-6">Nilai terbaik untuk keluarga</p>
-                        <div class="mb-6">
-                            <span class="text-5xl font-bold text-white">Rp 349K</span>
-                            <span class="text-blue-100">/bulan</span>
-                        </div>
-                        <div class="bg-white/20 backdrop-blur rounded-xl p-4 mb-6">
-                            <p class="text-sm text-white font-semibold">Hemat Rp 150K per bulan!</p>
-                        </div>
-                        <ul class="space-y-3 mb-8">
-                            <li class="flex items-start">
-                                <i class="fas fa-check-circle text-yellow-300 mr-3 mt-1"></i>
-                                <span class="text-white">40kg Cuci & Lipat</span>
-                            </li>
-                            <li class="flex items-start">
-                                <i class="fas fa-check-circle text-yellow-300 mr-3 mt-1"></i>
-                                <span class="text-white">5 item Dry Clean gratis</span>
-                            </li>
-                            <li class="flex items-start">
-                                <i class="fas fa-check-circle text-yellow-300 mr-3 mt-1"></i>
-                                <span class="text-white">2x layanan express gratis</span>
-                            </li>
-                            <li class="flex items-start">
-                                <i class="fas fa-check-circle text-yellow-300 mr-3 mt-1"></i>
-                                <span class="text-white">Diskon 20% layanan lain</span>
-                            </li>
-                            <li class="flex items-start">
-                                <i class="fas fa-check-circle text-yellow-300 mr-3 mt-1"></i>
-                                <span class="text-white">Prioritas penjadwalan</span>
-                            </li>
-                        </ul>
-                        <button class="w-full bg-white text-blue-600 hover:bg-gray-100 py-4 rounded-xl font-semibold transition-all transform hover:scale-105">
-                            Pilih Paket
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Business Plan -->
-                <div class="membership-card">
-                    <div class="p-8">
-                        <h3 class="text-2xl font-bold text-gray-800 mb-2">Business</h3>
-                        <p class="text-gray-600 mb-6">Untuk bisnis & kos-kosan</p>
-                        <div class="mb-6">
-                            <span class="text-5xl font-bold text-gray-800">Rp 599K</span>
-                            <span class="text-gray-600">/bulan</span>
-                        </div>
-                        <div class="bg-purple-50 rounded-xl p-4 mb-6">
-                            <p class="text-sm text-purple-800 font-semibold">Hemat Rp 250K per bulan!</p>
-                        </div>
-                        <ul class="space-y-3 mb-8">
-                            <li class="flex items-start">
-                                <i class="fas fa-check-circle text-purple-600 mr-3 mt-1"></i>
-                                <span class="text-gray-700">80kg Cuci & Lipat</span>
-                            </li>
-                            <li class="flex items-start">
-                                <i class="fas fa-check-circle text-purple-600 mr-3 mt-1"></i>
-                                <span class="text-gray-700">10 item Dry Clean gratis</span>
-                            </li>
-                            <li class="flex items-start">
-                                <i class="fas fa-check-circle text-purple-600 mr-3 mt-1"></i>
-                                <span class="text-gray-700">Layanan express unlimited</span>
-                            </li>
-                            <li class="flex items-start">
-                                <i class="fas fa-check-circle text-purple-600 mr-3 mt-1"></i>
-                                <span class="text-gray-700">Manajer akun khusus</span>
-                            </li>
-                            <li class="flex items-start">
-                                <i class="fas fa-check-circle text-purple-600 mr-3 mt-1"></i>
-                                <span class="text-gray-700">Invoice bulanan</span>
-                            </li>
-                        </ul>
-                        <button class="w-full bg-white border-2 border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white py-4 rounded-xl font-semibold transition-all">
-                            Pilih Paket
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- CTA Section -->
-        <div class="mt-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-10 text-white text-center shadow-2xl">
-            <h3 class="text-3xl font-bold mb-4">Masih bingung pilih yang mana?</h3>
-            <p class="text-lg mb-6 opacity-90 max-w-2xl mx-auto">Chat dengan tim kami dan dapatkan rekomendasi paket yang paling sesuai dengan kebutuhan Anda</p>
-            <button class="inline-flex items-center px-8 py-4 bg-white text-blue-600 rounded-full font-semibold hover:shadow-lg transition-all hover:scale-105">
-                <i class="fab fa-whatsapp mr-2 text-xl"></i> Chat di WhatsApp
-            </button>
+        <div class="text-center">
+            <a href="{{ route('services.index') }}" class="inline-flex items-center px-8 py-3 border-2 border-blue-600 text-blue-600 font-bold rounded-full hover:bg-blue-600 hover:text-white transition-all">
+                Lihat Semua Layanan <i class="fas fa-arrow-right ml-2"></i>
+            </a>
         </div>
     </div>
 </section>

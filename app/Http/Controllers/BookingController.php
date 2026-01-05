@@ -10,6 +10,7 @@ use App\Models\Tracking;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log; // Ditambahkan untuk logging
 use Carbon\Carbon;
 
 class BookingController extends Controller
@@ -17,13 +18,16 @@ class BookingController extends Controller
     /**
      * Tampilkan halaman booking
      */
-    public function index()
+    public function index(Request $request)
     {
-        return $this->create();
+        return $this->create($request);
     }
 
-    public function create()
+    public function create(Request $request)
     {
+        // Fitur: Ambil ID layanan dari URL (?service_id=...) untuk auto-select
+        $selectedServiceId = $request->query('service_id');
+
         // Ambil semua service yang aktif dari database
         $services = Service::active()
             ->select('id', 'name', 'description', 'price_per_kg', 'price_per_unit', 'pricing_type', 'duration_hours')
@@ -50,12 +54,13 @@ class BookingController extends Controller
         // Ambil data customer jika sudah login
         $customer = Auth::guard('customer')->user();
 
-        return view('booking', compact('services', 'outlets', 'customer'));
+        // Kirim data ke view termasuk selectedServiceId
+        return view('booking', compact('services', 'outlets', 'customer', 'selectedServiceId'));
     }
 
     public function store(Request $request)
     {
-        // Validation rules
+        // Validation rules (Ditambahkan is_free_service)
         $rules = [
             'service_id' => 'required|exists:services,id',
             'outlet_id' => 'required|exists:outlets,id',
@@ -65,6 +70,7 @@ class BookingController extends Controller
             'pickup_time' => 'required|string',
             'address' => 'required|string|min:10',
             'notes' => 'nullable|string',
+            'is_free_service' => 'nullable|boolean', // Ditambahkan untuk Reward System
         ];
 
         // Additional rules for guest customers
@@ -84,16 +90,18 @@ class BookingController extends Controller
             ->where('is_active', true)
             ->first();
 
-        // Prepare order data
+        // Prepare order data (Ditambahkan service_id & is_free_service)
         $orderData = [
             'outlet_id' => $validated['outlet_id'],
+            'service_id' => $validated['service_id'], // Penting agar Model bisa hitung harga
             'delivery_method' => $validated['delivery_method'],
             'service_speed' => $validated['service_speed'],
-            'courier_id' => $courier?->id, // Auto-assign courier
+            'courier_id' => $courier?->id, 
             'status' => 'pending',
             'payment_status' => 'pending',
             'pickup_time' => $validated['pickup_date'] . ' ' . explode('-', $validated['pickup_time'])[0] . ':00',
             'notes' => $validated['notes'] ?? null,
+            'is_free_service' => $request->has('is_free_service'), // Flag dari checkbox reward
             'total_weight' => 0,
             'total_price' => 0,
             'discount_amount' => 0,
@@ -117,10 +125,10 @@ class BookingController extends Controller
             $orderData['guest_address'] = $validated['address'];
         }
 
-        // Create order
+        // Create order (Model boot() akan menangani perhitungan harga & pemotongan kupon)
         $order = Order::create($orderData);
 
-        // Create order item with initial values (will be updated after weighing)
+        // Create order item
         OrderItem::create([
             'order_id' => $order->id,
             'service_id' => $validated['service_id'],
@@ -133,7 +141,6 @@ class BookingController extends Controller
 
         // Create tracking records if delivery method requires it
         $deliveryMethod = $validated['delivery_method'];
-        
         if (in_array($deliveryMethod, ['pickup', 'delivery', 'pickup_delivery'])) {
             $this->createTrackingRecords($order, $deliveryMethod, $courier, $validated['address']);
         }
@@ -159,16 +166,12 @@ class BookingController extends Controller
                 'actual_time' => null,
                 'pickup_address' => $address,
                 'delivery_address' => null,
-                'latitude' => null,
-                'longitude' => null,
                 'notes' => 'Penjemputan laundry dari customer - Menunggu konfirmasi',
-                'photo' => null,
             ]);
         }
 
         // Create DELIVERY tracking record
         if (in_array($deliveryMethod, ['delivery', 'pickup_delivery'])) {
-            // Calculate estimated delivery time based on service speed
             $estimatedDelivery = $this->calculateEstimatedDelivery($pickupTime, $order->service_speed);
             
             Tracking::create([
@@ -180,10 +183,7 @@ class BookingController extends Controller
                 'actual_time' => null,
                 'pickup_address' => null,
                 'delivery_address' => $address,
-                'latitude' => null,
-                'longitude' => null,
                 'notes' => 'Pengiriman laundry ke customer - Menunggu proses selesai',
-                'photo' => null,
             ]);
         }
     }
@@ -194,9 +194,9 @@ class BookingController extends Controller
     private function calculateEstimatedDelivery(Carbon $pickupTime, string $serviceSpeed): Carbon
     {
         return match ($serviceSpeed) {
-            'same_day' => $pickupTime->copy()->addHours(8), // Same day: 8 hours
-            'express' => $pickupTime->copy()->addDay(), // Express: 1 day
-            'regular' => $pickupTime->copy()->addDays(2), // Regular: 2 days
+            'same_day' => $pickupTime->copy()->addHours(8),
+            'express' => $pickupTime->copy()->addDay(),
+            'regular' => $pickupTime->copy()->addDays(2),
             default => $pickupTime->copy()->addDays(2),
         };
     }
@@ -207,23 +207,13 @@ class BookingController extends Controller
     private function getServiceIcon(string $serviceName): string
     {
         $name = strtolower($serviceName);
-        
-        if (str_contains($name, 'cuci kering') || str_contains($name, 'kiloan')) {
-            return 'fas fa-washing-machine';
-        } elseif (str_contains($name, 'setrika') || str_contains($name, 'iron')) {
-            return 'fas fa-tshirt';
-        } elseif (str_contains($name, 'dry clean')) {
-            return 'fas fa-suitcase';
-        } elseif (str_contains($name, 'bed') || str_contains($name, 'sprei')) {
-            return 'fas fa-bed';
-        } elseif (str_contains($name, 'sepatu') || str_contains($name, 'shoes')) {
-            return 'fas fa-shoe-prints';
-        } elseif (str_contains($name, 'carpet') || str_contains($name, 'karpet')) {
-            return 'fas fa-th-large';
-        } elseif (str_contains($name, 'express') || str_contains($name, 'kilat')) {
-            return 'fas fa-bolt';
-        }
-        
+        if (str_contains($name, 'cuci kering') || str_contains($name, 'kiloan')) return 'fas fa-washing-machine';
+        if (str_contains($name, 'setrika') || str_contains($name, 'iron')) return 'fas fa-tshirt';
+        if (str_contains($name, 'dry clean')) return 'fas fa-suitcase';
+        if (str_contains($name, 'bed') || str_contains($name, 'sprei')) return 'fas fa-bed';
+        if (str_contains($name, 'sepatu') || str_contains($name, 'shoes')) return 'fas fa-shoe-prints';
+        if (str_contains($name, 'carpet') || str_contains($name, 'karpet')) return 'fas fa-th-large';
+        if (str_contains($name, 'express') || str_contains($name, 'kilat')) return 'fas fa-bolt';
         return 'fas fa-tshirt';
     }
 
@@ -233,21 +223,12 @@ class BookingController extends Controller
     private function getServiceColor(string $serviceName): string
     {
         $name = strtolower($serviceName);
-        
-        if (str_contains($name, 'cuci kering') || str_contains($name, 'kiloan')) {
-            return 'from-blue-400 to-blue-600';
-        } elseif (str_contains($name, 'setrika')) {
-            return 'from-green-400 to-green-600';
-        } elseif (str_contains($name, 'dry clean')) {
-            return 'from-purple-400 to-purple-600';
-        } elseif (str_contains($name, 'bed') || str_contains($name, 'sprei')) {
-            return 'from-pink-400 to-pink-600';
-        } elseif (str_contains($name, 'express') || str_contains($name, 'kilat')) {
-            return 'from-red-400 to-red-600';
-        } elseif (str_contains($name, 'sepatu')) {
-            return 'from-yellow-400 to-yellow-600';
-        }
-        
+        if (str_contains($name, 'cuci kering') || str_contains($name, 'kiloan')) return 'from-blue-400 to-blue-600';
+        if (str_contains($name, 'setrika')) return 'from-green-400 to-green-600';
+        if (str_contains($name, 'dry clean')) return 'from-purple-400 to-purple-600';
+        if (str_contains($name, 'bed') || str_contains($name, 'sprei')) return 'from-pink-400 to-pink-600';
+        if (str_contains($name, 'express') || str_contains($name, 'kilat')) return 'from-red-400 to-red-600';
+        if (str_contains($name, 'sepatu')) return 'from-yellow-400 to-yellow-600';
         return 'from-indigo-400 to-indigo-600';
     }
 }
