@@ -3,124 +3,141 @@
 namespace App\Filament\Resources\OrderResource\Pages;
 
 use App\Filament\Resources\OrderResource;
+use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
-use Illuminate\Database\Eloquent\Model;
 
 class CreateOrder extends CreateRecord
 {
     protected static string $resource = OrderResource::class;
 
-    protected function getRedirectUrl(): string
-    {
-        return $this->getResource()::getUrl('edit', ['record' => $this->record]);
-    }
-
+    /**
+     * Mutate data SEBELUM create
+     */
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // Set default values if not provided
-        $data['base_price'] = $data['base_price'] ?? 0;
-        
+        // Auto-detect customer type
+        if (empty($data['customer_type'])) {
+            $data['customer_type'] = !empty($data['customer_id']) ? 'member' : 'guest';
+        }
+
+        // Clean up berdasarkan customer type
+        if ($data['customer_type'] === 'guest') {
+            $data['customer_id'] = null;
+        } else {
+            $data['guest_name'] = null;
+            $data['guest_phone'] = null;
+            $data['guest_address'] = null;
+        }
+
         return $data;
     }
 
-    protected function handleRecordCreation(array $data): Model
-    {
-        // Create the main order
-        $record = static::getModel()::create($data);
-
-        // Auto-create payment record if payment status is paid
-        if ($data['payment_status'] === 'paid') {
-            \App\Models\Payment::create([
-                'order_id' => $record->id,
-                'amount' => $data['total_price'],
-                'gateway' => $data['payment_gateway'],
-                'status' => 'success',
-                'paid_at' => now(),
-                'transaction_id' => 'TRX-' . str_pad($record->id, 8, '0', STR_PAD_LEFT) . '-' . time(),
-                'notes' => 'Auto-created from order creation',
-            ]);
-
-            Notification::make()
-                ->title('Payment Record Created')
-                ->body('Payment record has been automatically created')
-                ->success()
-                ->send();
-        }
-
-        // Auto-create order item if service is selected
-        if (isset($data['service_id']) && isset($data['total_weight'])) {
-            $service = \App\Models\Service::find($data['service_id']);
-            
-            if ($service) {
-                \App\Models\OrderItem::create([
-                    'order_id' => $record->id,
-                    'service_id' => $data['service_id'],
-                    'quantity' => 1,
-                    'weight' => $data['total_weight'],
-                    'price' => $data['base_price'],
-                    'subtotal' => $data['base_price'],
-                    'notes' => 'Auto-created from order',
-                ]);
-
-                Notification::make()
-                    ->title('Order Item Created')
-                    ->body('Order item has been automatically created')
-                    ->success()
-                    ->send();
-            }
-        }
-
-        return $record;
-    }
-
+    /**
+     * CRITICAL: Setelah order dan items dibuat, recalculate SEMUA harga
+     */
     protected function afterCreate(): void
     {
         $order = $this->record;
 
-        // Send notification
-        $customerName = $order->customer ? $order->customer->name : 'Walk-In Customer';
+        // Tunggu sampai semua order items tersimpan
+        sleep(1); // Delay 1 detik untuk memastikan relationships sudah ready
 
-            Notification::make()
-                ->title('Order Created Successfully')
-                ->body("Order #{$order->id} for {$customerName} has been created")
-                ->success()
-                ->duration(5000)
-                ->send();
+        // Refresh order dengan relations
+        $order = $order->fresh(['orderItems', 'customer', 'outlet', 'service']);
 
-        // Additional notifications based on delivery method
-        if (in_array($order->delivery_method, ['pickup', 'delivery', 'pickup_delivery'])) {
-            if (!$order->courier_id) {
-                Notification::make()
-                    ->title('Reminder: Assign Courier')
-                    ->body('This order requires courier assignment')
-                    ->warning()
-                    ->duration(10000)
-                    ->send();
+        if (!$order) {
+            return;
+        }
+
+        // PENTING: Hitung ulang SEMUA harga berdasarkan order items yang sudah ada
+        $this->recalculateOrderPrices($order);
+
+        Notification::make()
+            ->success()
+            ->title('Order Created Successfully')
+            ->body("Order #{$order->id} | Total: Rp " . number_format($order->final_price, 0, ',', '.'))
+            ->send();
+    }
+
+    /**
+     * Recalculate semua harga order berdasarkan order items
+     */
+    protected function recalculateOrderPrices($order): void
+    {
+        // 1. Hitung base price dari semua order items
+        $basePrice = 0;
+        $totalWeight = 0;
+
+        foreach ($order->orderItems as $item) {
+            $basePrice += $item->subtotal ?? 0;
+            $totalWeight += $item->weight ?? 0;
+        }
+
+        // 2. Apply multipliers (speed & delivery)
+        $speedMultiplier = match($order->service_speed) {
+            'express' => 1.5,
+            'same_day' => 2.0,
+            default => 1.0,
+        };
+
+        $deliveryMultiplier = match($order->delivery_method) {
+            'pickup' => 1.2,
+            'delivery' => 1.2,
+            'pickup_delivery' => 1.4,
+            default => 1.0,
+        };
+
+        $totalPrice = $basePrice * $speedMultiplier * $deliveryMultiplier;
+
+        // 3. Apply discount (free service atau coupon)
+        $discountAmount = 0;
+        $discountType = null;
+        $finalPrice = $totalPrice;
+
+        if ($order->is_free_service) {
+            $discountAmount = $totalPrice;
+            $finalPrice = 0;
+            $discountType = 'free_service';
+        } elseif ($order->coupon_id) {
+            $coupon = \App\Models\Coupon::find($order->coupon_id);
+            if ($coupon && method_exists($coupon, 'calculateDiscount')) {
+                $discountAmount = $coupon->calculateDiscount($totalPrice);
+                $finalPrice = max(0, $totalPrice - $discountAmount);
+                $discountType = 'coupon';
             }
         }
 
-        // Reminder for scheduling
-        if (!$order->pickup_time && $order->delivery_method !== 'walk_in') {
-            Notification::make()
-                ->title('Reminder: Schedule Pickup')
-                ->body('Don\'t forget to schedule pickup time')
-                ->info()
-                ->duration(8000)
-                ->send();
-        }
+        // 4. Update order dengan harga yang benar
+        $order->updateQuietly([
+            'total_weight' => $totalWeight,
+            'base_price' => round($basePrice, 2),
+            'total_price' => round($totalPrice, 2),
+            'discount_amount' => round($discountAmount, 2),
+            'discount_type' => $discountType,
+            'final_price' => round($finalPrice, 2),
+        ]);
+
+        // 5. Refresh order lagi untuk memastikan data tersimpan
+        $order->refresh();
+
+        \Log::info("Order #{$order->id} prices recalculated", [
+            'base_price' => $basePrice,
+            'total_price' => $totalPrice,
+            'final_price' => $finalPrice,
+        ]);
     }
 
-    protected function getCreatedNotificationTitle(): ?string
+    /**
+     * Redirect ke index setelah create agar table refresh
+     */
+    protected function getRedirectUrl(): string
     {
-        return 'Order created';
+        return $this->getResource()::getUrl('index');
     }
 
     protected function getCreatedNotification(): ?Notification
     {
-        return Notification::make()
-            ->success()
-            ->title('Order created')
-            ->body('The order has been created successfully.');
+        return null; // Sudah ada di afterCreate
     }
 }

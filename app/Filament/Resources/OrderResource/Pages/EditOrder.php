@@ -21,192 +21,36 @@ class EditOrder extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('view_items')
-                ->label('View Items')
-                ->icon('heroicon-m-list-bullet')
-                ->color('info')
-                ->badge(fn () => $this->record->orderItems()->count())
-                ->url(fn () => OrderItemResource::getUrl('index'))
-                ->openUrlInNewTab(),
+            // ... actions yang sudah ada ...
 
-            Actions\Action::make('view_payments')
-                ->label('View Payments')
-                ->icon('heroicon-m-credit-card')
-                ->color('success')
-                ->badge(fn () => $this->record->payments()->count())
-                ->url(fn () => PaymentResource::getUrl('index'))
-                ->openUrlInNewTab(),
-
-            Actions\Action::make('add_item')
-                ->label('Add Item')
-                ->icon('heroicon-m-plus-circle')
-                ->color('primary')
-                ->form([
-                    Forms\Components\Select::make('service_id')
-                        ->label('Service')
-                        ->options(fn () => Service::pluck('name', 'id'))
-                        ->required()
-                        ->searchable()
-                        ->reactive()
-                        ->afterStateUpdated(function (Forms\Set $set, $state) {
-                            if ($state) {
-                                $service = Service::find($state);
-                                if ($service) {
-                                    $set('price', $service->base_price);
-                                }
-                            }
-                        }),
-
-                    Forms\Components\TextInput::make('quantity')
-                        ->label('Quantity')
-                        ->numeric()
-                        ->default(1)
-                        ->required()
-                        ->minValue(1)
-                        ->reactive()
-                        ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, $state) {
-                            if ($state && $get('price')) {
-                                $set('subtotal', $state * $get('price'));
-                            }
-                        }),
-
-                    Forms\Components\TextInput::make('weight')
-                        ->label('Weight (kg)')
-                        ->numeric()
-                        ->step(0.1)
-                        ->suffix('kg')
-                        ->minValue(0),
-
-                    Forms\Components\TextInput::make('price')
-                        ->label('Unit Price')
-                        ->numeric()
-                        ->prefix('Rp')
-                        ->required()
-                        ->reactive()
-                        ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, $state) {
-                            if ($state && $get('quantity')) {
-                                $set('subtotal', $state * $get('quantity'));
-                            }
-                        }),
-
-                    Forms\Components\TextInput::make('subtotal')
-                        ->label('Subtotal')
-                        ->numeric()
-                        ->prefix('Rp')
-                        ->disabled()
-                        ->dehydrated(),
-
-                    Forms\Components\Textarea::make('notes')
-                        ->label('Notes')
-                        ->rows(3)
-                        ->placeholder('Optional notes...'),
-                ])
-                ->action(function (array $data) {
-                    OrderItem::create([
-                        'order_id' => $this->record->id,
-                        'service_id' => $data['service_id'],
-                        'quantity' => $data['quantity'],
-                        'weight' => $data['weight'] ?? null,
-                        'price' => $data['price'],
-                        'subtotal' => $data['subtotal'],
-                        'notes' => $data['notes'] ?? null,
-                    ]);
-
-                    $this->updateOrderTotals();
-
-                    Notification::make()
-                        ->title('Item Added Successfully')
-                        ->body("Item added to order #{$this->record->id}")
-                        ->success()
-                        ->send();
-                })
-                ->modalWidth('xl'),
-
-            Actions\Action::make('create_payment')
-                ->label('Create Payment')
-                ->icon('heroicon-m-banknotes')
-                ->color('warning')
-                ->visible(fn () => $this->record->payment_status !== 'paid')
-                ->form([
-                    Forms\Components\Select::make('gateway')
-                        ->label('Payment Method')
-                        ->options([
-                            'cash' => '💵 Cash',
-                            'bank_transfer' => '🏦 Bank Transfer',
-                            'credit_card' => '💳 Credit Card',
-                            'debit_card' => '💳 Debit Card',
-                            'e_wallet' => '📱 E-Wallet',
-                            'qris' => '📲 QRIS',
-                            'midtrans' => '🌐 Midtrans',
-                            'xendit' => '🌐 Xendit',
-                            'paypal' => '🌐 PayPal',
-                            'other' => '❓ Other',
-                        ])
-                        ->default($this->record->payment_gateway)
-                        ->required()
-                        ->native(false)
-                        ->searchable(),
-
-                    Forms\Components\TextInput::make('amount')
-                        ->label('Payment Amount')
-                        ->numeric()
-                        ->prefix('Rp')
-                        ->default($this->record->total_price)
-                        ->required()
-                        ->minValue(0),
-
-                    Forms\Components\Select::make('status')
-                        ->label('Payment Status')
-                        ->options([
-                            'pending' => 'Pending',
-                            'processing' => 'Processing',
-                            'success' => 'Success',
-                            'failed' => 'Failed',
-                        ])
-                        ->default('success')
-                        ->required(),
-
-                    Forms\Components\DateTimePicker::make('paid_at')
-                        ->label('Payment Date')
-                        ->default(now())
-                        ->seconds(false),
-
-                    Forms\Components\Textarea::make('notes')
-                        ->label('Payment Notes')
-                        ->rows(3)
-                        ->placeholder('Additional payment notes...'),
-                ])
-                ->action(function (array $data) {
-                    Payment::create([
-                        'order_id' => $this->record->id,
-                        'amount' => $data['amount'],
-                        'gateway' => $data['gateway'],
-                        'status' => $data['status'],
-                        'paid_at' => $data['paid_at'] ?? null,
-                        'transaction_id' => 'TRX-' . str_pad($this->record->id, 8, '0', STR_PAD_LEFT) . '-' . time(),
-                        'notes' => $data['notes'] ?? null,
-                    ]);
-
-                    if ($data['status'] === 'success') {
-                        $this->record->update(['payment_status' => 'paid']);
-                    }
-
-                    Notification::make()
-                        ->title('Payment Created Successfully')
-                        ->body("Payment record created for order #{$this->record->id}")
-                        ->success()
-                        ->send();
-                })
-                ->modalWidth('lg'),
+            Actions\Action::make('refresh')
+                ->label('Refresh')
+                ->icon('heroicon-o-arrow-path')
+                ->color('gray')
+                ->action(fn () => $this->fillForm()),
 
             Actions\ViewAction::make(),
-
             Actions\DeleteAction::make(),
         ];
     }
 
+    /**
+     * Mutate data before fill (saat load)
+     */
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        if (empty($data['customer_type'])) {
+            $data['customer_type'] = !empty($data['customer_id']) ? 'member' : 'guest';
+        }
+        return $data;
+    }
+
+    /**
+     * Mutate data before save
+     */
     protected function mutateFormDataBeforeSave(array $data): array
     {
+        // Track changes
         $oldStatus = $this->record->status;
         $newStatus = $data['status'] ?? $oldStatus;
 
@@ -223,14 +67,38 @@ class EditOrder extends EditRecord
             $data['_payment_status_changed'] = true;
         }
 
+        // Clean up customer data
+        if (($data['customer_type'] ?? 'member') === 'guest') {
+            $data['customer_id'] = null;
+        } else {
+            $data['guest_name'] = null;
+            $data['guest_phone'] = null;
+            $data['guest_address'] = null;
+        }
+
         return $data;
     }
 
+    /**
+     * CRITICAL: After save, recalculate prices
+     */
     protected function afterSave(): void
     {
         $order = $this->record;
         $data = $this->data;
 
+        // PENTING: Tunggu dan refresh order dengan relations
+        sleep(1);
+        $order = $order->fresh(['orderItems', 'customer', 'outlet', 'service']);
+
+        if (!$order) {
+            return;
+        }
+
+        // Recalculate prices berdasarkan order items terbaru
+        $this->recalculateOrderPrices($order);
+
+        // Status change notifications
         if (isset($data['_status_changed'])) {
             if ($data['_new_status'] === 'completed' && $order->payment_status === 'pending') {
                 Notification::make()
@@ -248,13 +116,14 @@ class EditOrder extends EditRecord
                 ->send();
         }
 
+        // Auto-create payment if needed
         if (isset($data['_payment_status_changed']) && $order->payment_status === 'paid') {
             $existingPayment = $order->payments()->where('status', 'success')->first();
 
             if (!$existingPayment) {
                 Payment::create([
                     'order_id' => $order->id,
-                    'amount' => $order->total_price,
+                    'amount' => $order->final_price,
                     'gateway' => $order->payment_gateway,
                     'status' => 'success',
                     'paid_at' => now(),
@@ -270,6 +139,7 @@ class EditOrder extends EditRecord
             }
         }
 
+        // Courier reminder
         if (in_array($order->delivery_method, ['pickup', 'delivery', 'pickup_delivery']) && !$order->courier_id) {
             Notification::make()
                 ->title('📋 Reminder')
@@ -278,23 +148,37 @@ class EditOrder extends EditRecord
                 ->send();
         }
 
-        // ========================================
-        // 🔥 Reward Coupon Logic (1 order = 1 stamp)
-        // ========================================
-        if ($order->status === 'completed' && $order->payment_status === 'paid') {
-            $this->handleRewardCoupon();
+        // Reward notification
+        if ($order->wasChanged('status') && $order->status === 'completed' && 
+            $order->customer_id && $order->customer_type === 'member' && 
+            !$order->is_free_service) {
+            
+            $customer = $order->customer;
+            if ($customer) {
+                Notification::make()
+                    ->title('🎁 Reward System Active')
+                    ->body("Customer {$customer->name} has {$customer->available_coupons} stamp(s)")
+                    ->info()
+                    ->send();
+            }
         }
     }
 
-    protected function updateOrderTotals(): void
+    /**
+     * Recalculate semua harga order
+     */
+    protected function recalculateOrderPrices($order): void
     {
-        $order = $this->record;
+        // 1. Hitung base price dari order items
+        $basePrice = 0;
+        $totalWeight = 0;
 
-        $orderItems = $order->orderItems;
+        foreach ($order->orderItems as $item) {
+            $basePrice += $item->subtotal ?? 0;
+            $totalWeight += $item->weight ?? 0;
+        }
 
-        $totalWeight = $orderItems->sum('weight') ?: $order->total_weight;
-        $itemsSubtotal = $orderItems->sum('subtotal');
-
+        // 2. Apply multipliers
         $speedMultiplier = match($order->service_speed) {
             'express' => 1.5,
             'same_day' => 2.0,
@@ -308,80 +192,58 @@ class EditOrder extends EditRecord
             default => 1.0,
         };
 
-        if ($order->service) {
-            $basePrice = $totalWeight * $order->service->price_per_kg;
-        } else {
-            $basePrice = $itemsSubtotal;
-        }
-
         $totalPrice = $basePrice * $speedMultiplier * $deliveryMultiplier;
 
-        $order->update([
+        // 3. Apply discount
+        $discountAmount = 0;
+        $discountType = null;
+        $finalPrice = $totalPrice;
+
+        if ($order->is_free_service) {
+            $discountAmount = $totalPrice;
+            $finalPrice = 0;
+            $discountType = 'free_service';
+        } elseif ($order->coupon_id) {
+            $coupon = \App\Models\Coupon::find($order->coupon_id);
+            if ($coupon && method_exists($coupon, 'calculateDiscount')) {
+                $discountAmount = $coupon->calculateDiscount($totalPrice);
+                $finalPrice = max(0, $totalPrice - $discountAmount);
+                $discountType = 'coupon';
+            }
+        }
+
+        // 4. Update order
+        $order->updateQuietly([
             'total_weight' => $totalWeight,
-            'base_price' => round($basePrice),
-            'total_price' => round($totalPrice),
+            'base_price' => round($basePrice, 2),
+            'total_price' => round($totalPrice, 2),
+            'discount_amount' => round($discountAmount, 2),
+            'discount_type' => $discountType,
+            'final_price' => round($finalPrice, 2),
         ]);
 
-        Notification::make()
-            ->title('Order Totals Updated')
-            ->body("New total: Rp " . number_format($totalPrice, 0, ',', '.'))
-            ->info()
-            ->send();
+        $order->refresh();
+
+        \Log::info("Order #{$order->id} prices updated", [
+            'base_price' => $basePrice,
+            'total_price' => $totalPrice,
+            'final_price' => $finalPrice,
+        ]);
     }
 
-    // ===========================
-    // 🎁 REWARD COUPON FUNCTION
-    // ===========================
-    protected function handleRewardCoupon()
+    /**
+     * Redirect untuk refresh table
+     */
+    protected function getRedirectUrl(): string
     {
-        $order = $this->record;
-
-        if (!$order->customer_id) {
-            return;
-        }
-
-        if ($order->coupon_earned) {
-            return;
-        }
-
-        $paidCount = Order::where('customer_id', $order->customer_id)
-            ->where('payment_status', 'paid')
-            ->where('status', 'completed')
-            ->count();
-
-        // Tandai order ini sudah dapat reward
-        $order->update(['coupon_earned' => true]);
-
-        // Jika mencapai 6 stamp → buat kupon gratis
-        if ($paidCount % 6 === 0) {
-            $coupon = \App\Models\Coupon::create([
-                'customer_id' => $order->customer_id,
-                'code' => 'FREE-' . strtoupper(uniqid()),
-                'discount_type' => 'percent',
-                'discount_value' => 100,
-                'max_usage' => 1,
-                'is_active' => true,
-                'expires_at' => now()->addMonths(3),
-            ]);
-
-            Notification::make()
-                ->title('🎉 Reward Unlocked!')
-                ->body("Customer mendapatkan kupon FREE LAUNDRY: {$coupon->code}")
-                ->success()
-                ->send();
-        }
-    }
-
-    protected function getSavedNotificationTitle(): ?string
-    {
-        return 'Order updated successfully';
+        return $this->getResource()::getUrl('index');
     }
 
     protected function getSavedNotification(): ?Notification
     {
         return Notification::make()
             ->success()
-            ->title('Order updated')
-            ->body('The order has been saved successfully.');
+            ->title('Order Updated')
+            ->body('Order and prices have been recalculated successfully.');
     }
 }

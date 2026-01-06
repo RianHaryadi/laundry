@@ -424,175 +424,296 @@ class Order extends Model
     // --- Boot & Sync ---
 
 protected static function boot()
-    {
-        parent::boot();
+{
+    parent::boot();
 
-        // 1. SEBELUM CREATE: Kalkulasi harga
-        static::creating(function ($order) {
-            $order->calculatePrices();
-        });
+    // 1. SEBELUM CREATE: Set default values, JANGAN calculate dulu
+    static::creating(function ($order) {
+        // Set default values untuk mencegah null
+        $order->base_price = $order->base_price ?? 0;
+        $order->total_price = $order->total_price ?? 0;
+        $order->final_price = $order->final_price ?? 0;
+        $order->discount_amount = $order->discount_amount ?? 0;
+        $order->total_weight = $order->total_weight ?? 0;
+    });
 
-        // 2. SETELAH CREATE: Logika Reset Kupon & Record Awal
-        static::created(function ($order) {
-            // Jika pakai Free Service, jatah 6 kupon langsung hangus (reset ke 0)
-            if ($order->is_free_service && $order->customer_id && $order->customer_type === 'member') {
+    // 2. SETELAH CREATE: Logika Reset Kupon & Record Awal
+    static::created(function ($order) {
+        // Jika pakai Free Service, jatah 6 kupon langsung hangus
+        if ($order->is_free_service && $order->customer_id && $order->customer_type === 'member') {
             $customer = $order->customer;
             if ($customer && $customer->available_coupons >= 6) {
-                // Kurangi 6 dari total yang ada, jangan di-nol kan
+                // Kurangi 6 dari total yang ada
                 $customer->decrement('available_coupons', 6);
                 \Log::info("Free Service digunakan. Kupon Customer #{$customer->id} dikurangi 6. Sisa: {$customer->available_coupons}");
             }
             $order->updateQuietly(['coupon_earned' => true]);
         }
-            // Buat record pembayaran awal
-            $order->createInitialPaymentRecord();
 
-            // Buat tracking jika perlu
-            if (in_array($order->delivery_method, ['pickup', 'delivery', 'pickup_delivery'])) {
-                $order->createInitialTracking();
-            }
-        });
+        // Buat record pembayaran awal (dengan amount 0 dulu)
+        $order->createInitialPaymentRecord();
 
-        // 3. SAAT UPDATE: Hitung ulang jika data krusial berubah
-        static::updating(function ($order) {
-            if ($order->isDirty(['service_id', 'total_weight', 'service_speed', 'delivery_method', 'coupon_id', 'is_free_service'])) {
-                $order->calculatePrices();
-            }
-        });
+        // Buat tracking jika perlu
+        if (in_array($order->delivery_method, ['pickup', 'delivery', 'pickup_delivery'])) {
+            $order->createInitialTracking();
+        }
+    });
 
-        // 4. SETELAH UPDATE: Sync Status & Cek Reward
-        static::updated(function ($order) {
-            $order->syncPaymentStatus();
+    // 3. SAAT UPDATE: Hitung ulang jika data krusial berubah
+    static::updating(function ($order) {
+        $fieldsToCheck = [
+            'service_id', 
+            'total_weight', 
+            'service_speed', 
+            'delivery_method', 
+            'coupon_id', 
+            'is_free_service'
+        ];
+        
+        if ($order->isDirty($fieldsToCheck)) {
+            $order->calculatePrices();
+        }
+    });
 
-            // Sync Tracking Status otomatis
-            if ($order->wasChanged('status')) {
-                $order->syncTrackingWithOrderStatus();
-            }
+    // 4. SETELAH UPDATE: Sync Status & Cek Reward
+    static::updated(function ($order) {
+        $order->syncPaymentStatus();
 
-            // Cek apakah dapet reward (Setiap 6 kali cuci berbayar)
-            if ($order->wasChanged('status') && $order->status === 'completed') {
-                $order->handleRewardSystem();
-            }
-        });
+        // Sync Tracking Status otomatis
+        if ($order->wasChanged('status')) {
+            $order->syncTrackingWithOrderStatus();
+        }
+
+        // Cek apakah dapet reward (Setiap 6 kali cuci berbayar)
+        if ($order->wasChanged('status') && $order->status === 'completed') {
+            $order->handleRewardSystem();
+        }
+    });
+}
+
+/**
+ * Create initial tracking record for orders with pickup/delivery
+ */
+public function createInitialTracking()
+{
+    // Only create tracking for orders that need pickup/delivery
+    if (!in_array($this->delivery_method, ['pickup', 'delivery', 'pickup_delivery'])) {
+        return null;
     }
 
-    public function calculatePrices(): void
-    {
+    try {
+        // Determine initial tracking status
+        $initialStatus = 'pending_pickup';
+
+        // Create the initial tracking record
+        return $this->trackings()->create([
+            'status' => $initialStatus,
+            'courier_id' => $this->courier_id, // Bisa null
+            'location' => $this->outlet->address ?? 'Outlet',
+            'notes' => 'Order created and waiting for processing',
+            'updated_by' => auth()->id(),
+        ]);
+    } catch (\Exception $e) {
+        \Log::error("Failed to create tracking for order #{$this->id}: " . $e->getMessage());
+        return null;
+    }
+}
+
+/**
+ * Calculate prices dari order items atau service
+ */
+public function calculatePrices(): void
+{
+    // 1. Hitung Base Price dari Order Items atau Service
+    $basePrice = 0;
+    $totalWeight = 0;
+
+    // Coba ambil dari order items yang sudah ada
+    $orderItems = $this->orderItems()->get();
+
+    if ($orderItems->isNotEmpty()) {
+        // Hitung dari order items
+        foreach ($orderItems as $item) {
+            $basePrice += $item->subtotal ?? 0;
+            $totalWeight += $item->weight ?? 0;
+        }
+    } else {
+        // Fallback: hitung dari service dan total_weight
         $service = $this->service;
-        if (!$service || !$this->total_weight) return;
-
-        // 1. Hitung Base Price (Harga dasar x Berat)
-        $pricePerKg = $service->price_per_kg ?? $service->base_price;
-        $this->base_price = round($this->total_weight * $pricePerKg, 2);
-
-        // 2. Hitung Total Price dengan Multiplier (Speed & Delivery)
-        // Menggunakan method multiplier yang sudah ada agar konsisten
-        $subtotal = $this->base_price * $this->getSpeedMultiplier() * $this->getDeliveryMultiplier();
-        $this->total_price = round($subtotal, 2);
-
-        // 3. Logika Diskon & Free Service
-        if ($this->is_free_service) {
-            $this->discount_amount = $this->total_price;
-            $this->final_price = 0;
-            $this->discount_type = 'free_service';
-        } else {
-            $discountAmount = 0;
-            if ($this->coupon_id && ($coupon = Coupon::find($this->coupon_id))) {
-                $discountAmount = $coupon->calculateDiscount($this->total_price);
-            }
-            $this->discount_amount = round($discountAmount, 2);
-            $this->final_price = round($this->total_price - $discountAmount, 2);
-            $this->discount_type = $discountAmount > 0 ? 'coupon' : null;
+        if ($service && $this->total_weight > 0) {
+            $pricePerKg = $service->price_per_kg ?? $service->base_price;
+            $basePrice = $this->total_weight * $pricePerKg;
+            $totalWeight = $this->total_weight;
         }
     }
 
-    /**
-     * Menangani sistem reward (6x cuci gratis 1)
-     */
-    protected function handleRewardSystem(): void
-    {
-        $customer = $this->customer;
-        if ($customer && $this->customer_type === 'member' && !$this->coupon_earned) {
-            
-            // Hitung hanya order BERBAYAR yang sudah COMPLETED
-            $paidOrdersCount = $customer->orders()
-                ->where('status', 'completed')
-                ->where('is_free_service', false)
-                ->count();
+    $this->base_price = round($basePrice, 2);
+    $this->total_weight = round($totalWeight, 2);
 
-            if ($paidOrdersCount > 0 && $paidOrdersCount % 6 === 0) {
-                try {
-                    // Tambahkan 6 ke jatah yang sudah ada (Stacking)
-                    $customer->increment('available_coupons', 6);
-                    $this->updateQuietly(['coupon_earned' => true]);
+    // 2. Hitung Total Price dengan Multiplier (Speed & Delivery)
+    $subtotal = $this->base_price * $this->getSpeedMultiplier() * $this->getDeliveryMultiplier();
+    $this->total_price = round($subtotal, 2);
 
-                    if (class_exists('\Filament\Notifications\Notification')) {
-                        \Filament\Notifications\Notification::make()
-                            ->success()
-                            ->title('🎉 Reward 6x Cuci Tercapai!')
-                            ->body("Pelanggan {$customer->name} mendapat tambahan jatah GRATIS!")
-                            ->send();
-                    }
-                } catch (\Exception $e) {
-                    \Log::error("Gagal reward: " . $e->getMessage());
-                }
-            } else {
-                $this->updateQuietly(['coupon_earned' => true]);
-            }
+    // 3. Logika Diskon & Free Service
+    if ($this->is_free_service) {
+        $this->discount_amount = $this->total_price;
+        $this->final_price = 0;
+        $this->discount_type = 'free_service';
+    } else {
+        $discountAmount = 0;
+        if ($this->coupon_id && ($coupon = Coupon::find($this->coupon_id))) {
+            $discountAmount = $coupon->calculateDiscount($this->total_price);
         }
+        $this->discount_amount = round($discountAmount, 2);
+        $this->final_price = round($this->total_price - $discountAmount, 2);
+        $this->discount_type = $discountAmount > 0 ? 'coupon' : null;
     }
+}
 
-    // ==========================================
-    // HELPERS & SYNC
-    // ==========================================
-
-    public function syncPaymentStatus(): void
-    {
-        $payment = $this->payments()->latest()->first();
-        if (!$payment || !$this->wasChanged('payment_status')) return;
-
-        $newStatus = match ($this->payment_status) {
-            'paid' => 'success',
-            'failed' => 'failed',
-            'refunded' => 'refunded',
-            default => 'pending',
-        };
-
-        $payment->update([
-            'status' => $newStatus,
-            'paid_at' => ($newStatus === 'success') ? now() : null
+/**
+ * Recalculate prices setelah order items berubah
+ * Method ini dipanggil dari CreateOrder dan EditOrder
+ */
+public function recalculatePricesFromItems(): void
+{
+    // Force reload order items dari database
+    $this->load('orderItems');
+    
+    // Calculate prices
+    $this->calculatePrices();
+    
+    // Save ke database tanpa trigger event lagi
+    $this->saveQuietly();
+    
+    // Update payment record jika ada dan masih pending
+    $latestPayment = $this->payments()->latest()->first();
+    if ($latestPayment && $latestPayment->status === 'pending') {
+        $latestPayment->updateQuietly([
+            'amount' => $this->final_price
         ]);
     }
+    
+    \Log::info("Order #{$this->id} recalculated from items", [
+        'items_count' => $this->orderItems->count(),
+        'base_price' => $this->base_price,
+        'total_price' => $this->total_price,
+        'final_price' => $this->final_price,
+    ]);
+}
 
-    public function createInitialPaymentRecord()
-    {
-        return $this->payments()->create([
-            'amount' => $this->final_price ?? 0,
-            'gateway' => $this->payment_gateway ?? 'cash',
-            'status' => $this->payment_status === 'paid' ? 'success' : 'pending',
-            'transaction_id' => 'TRX-' . date('Ymd') . '-' . strtoupper(uniqid()),
-        ]);
+/**
+ * Menangani sistem reward (6x cuci gratis 1)
+ */
+protected function handleRewardSystem(): void
+{
+    $customer = $this->customer;
+    
+    // Validasi: harus member, belum dapat reward, dan bukan free service
+    if (!$customer || 
+        $this->customer_type !== 'member' || 
+        $this->coupon_earned || 
+        $this->is_free_service) {
+        return;
     }
+    
+    // Hitung hanya order BERBAYAR yang sudah COMPLETED
+    $paidOrdersCount = $customer->orders()
+        ->where('status', 'completed')
+        ->where('is_free_service', false)
+        ->count();
 
-    public function syncTrackingWithOrderStatus(): void
-    {
-        $trackingStatus = match($this->status) {
-            'ready', 'picked_up' => 'picked_up',
-            'in_delivery' => 'in_transit',
-            'completed' => 'delivered',
-            'cancelled' => 'failed',
-            default => null,
-        };
+    // Tandai order ini sudah dapat reward (mencegah double reward)
+    $this->updateQuietly(['coupon_earned' => true]);
 
-        if ($trackingStatus) {
-            $latestTracking = $this->trackings()->latest()->first();
-            if ($latestTracking) {
-                $latestTracking->update([
-                    'status' => $trackingStatus,
-                    'notes' => "Status berubah otomatis menjadi {$trackingStatus}",
-                    'updated_at' => now(),
-                ]);
+    // Cek apakah sudah mencapai kelipatan 6
+    if ($paidOrdersCount > 0 && $paidOrdersCount % 6 === 0) {
+        try {
+            // Tambahkan 6 kupon ke saldo yang sudah ada (Stacking)
+            $customer->increment('available_coupons', 6);
+
+            \Log::info("Reward earned for customer #{$customer->id}", [
+                'order_id' => $this->id,
+                'paid_orders_count' => $paidOrdersCount,
+                'new_coupon_balance' => $customer->available_coupons,
+            ]);
+
+            // Kirim notifikasi jika ada Filament
+            if (class_exists('\Filament\Notifications\Notification')) {
+                \Filament\Notifications\Notification::make()
+                    ->success()
+                    ->title('🎉 Reward 6x Cuci Tercapai!')
+                    ->body("Pelanggan {$customer->name} mendapat tambahan 6 kupon! Total: {$customer->available_coupons}")
+                    ->send();
             }
+        } catch (\Exception $e) {
+            \Log::error("Failed to give reward to customer #{$customer->id}: " . $e->getMessage());
         }
     }
+}
+
+// ==========================================
+// HELPERS & SYNC
+// ==========================================
+
+public function syncPaymentStatus(): void
+{
+    $payment = $this->payments()->latest()->first();
+    
+    // Hanya sync jika ada payment dan payment_status berubah
+    if (!$payment || !$this->wasChanged('payment_status')) {
+        return;
+    }
+
+    $newStatus = match ($this->payment_status) {
+        'paid' => 'success',
+        'failed' => 'failed',
+        'refunded' => 'refunded',
+        default => 'pending',
+    };
+
+    $payment->updateQuietly([
+        'status' => $newStatus,
+        'paid_at' => ($newStatus === 'success') ? now() : null
+    ]);
+}
+
+public function createInitialPaymentRecord()
+{
+    return $this->payments()->create([
+        'amount' => $this->final_price ?? 0,
+        'gateway' => $this->payment_gateway ?? 'cash',
+        'status' => $this->payment_status === 'paid' ? 'success' : 'pending',
+        'transaction_id' => 'TRX-' . date('Ymd') . '-' . strtoupper(uniqid()),
+    ]);
+}
+
+public function syncTrackingWithOrderStatus(): void
+{
+    $trackingStatus = match($this->status) {
+        'ready', 'picked_up' => 'picked_up',
+        'in_delivery' => 'in_transit',
+        'completed' => 'delivered',
+        'cancelled' => 'failed',
+        default => null,
+    };
+
+    if (!$trackingStatus) {
+        return;
+    }
+
+    $latestTracking = $this->trackings()->latest()->first();
+    
+    if ($latestTracking) {
+        $latestTracking->updateQuietly([
+            'status' => $trackingStatus,
+            'notes' => "Status berubah otomatis menjadi {$trackingStatus}",
+            'updated_at' => now(),
+        ]);
+        
+        \Log::info("Tracking synced for order #{$this->id}", [
+            'order_status' => $this->status,
+            'tracking_status' => $trackingStatus,
+        ]);
+    }
+}
 }
