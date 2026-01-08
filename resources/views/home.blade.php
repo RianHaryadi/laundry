@@ -421,95 +421,103 @@
 </section>
 
     <!-- Tracking Section -->
-<section id="tracking" class="py-20 bg-gradient-to-br from-blue-50 to-indigo-50">
+<section id="tracking" class="py-12 md:py-20 bg-gradient-to-br from-blue-50 to-indigo-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col lg:flex-row gap-12 items-center">
-            <div class="lg:w-1/2">
-                <h2 class="text-4xl font-bold mb-6 text-gray-800">Pelacakan Pesanan <span class="gradient-text">Real-Time</span></h2>
-                <p class="text-gray-600 mb-8 text-lg">Pantau laundry Anda dari penjemputan hingga pengantaran dengan sistem pelacakan langsung kami.</p>
+        <div class="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center">
+            <!-- Left Content -->
+            <div class="w-full lg:w-1/2">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 md:mb-6 text-gray-800">
+                    Pelacakan Pesanan <span class="gradient-text">Real-Time</span>
+                </h2>
+                <p class="text-gray-600 mb-6 md:mb-8 text-base md:text-lg">
+                    Pantau laundry Anda dari penjemputan hingga pengantaran dengan sistem pelacakan langsung kami.
+                </p>
                 
-                <div class="bg-white rounded-2xl p-8 shadow-xl mb-8">
-                    <div class="flex mb-6">
-                        <input type="text" id="trackingInput" placeholder="Masukkan nomor pesanan (Contoh: 000001)" 
-                               class="flex-grow px-6 py-4 border border-gray-300 rounded-l-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <button onclick="trackOrder()" class="bg-blue-600 hover:bg-blue-700 px-8 rounded-r-2xl font-medium text-white transition-all">
+                <!-- Tracking Input -->
+                <div class="bg-white rounded-2xl p-4 md:p-8 shadow-xl mb-6 md:mb-8">
+                    <div class="flex flex-col sm:flex-row mb-4 md:mb-6 gap-3 sm:gap-0">
+                        <input type="text" id="trackingInput" placeholder="Nomor pesanan" 
+                               class="flex-grow px-4 md:px-6 py-3 md:py-4 border border-gray-300 rounded-xl sm:rounded-l-2xl sm:rounded-r-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base">
+                        <button onclick="trackOrder()" class="bg-blue-600 hover:bg-blue-700 px-6 md:px-8 py-3 md:py-4 rounded-xl sm:rounded-r-2xl sm:rounded-l-none font-medium text-white transition-all text-sm md:text-base whitespace-nowrap">
                             <i class="fas fa-search mr-2"></i> Lacak
                         </button>
                     </div>
                     <div class="text-center">
-                        <p class="text-gray-600">Contoh nomor pesanan: 
+                        <p class="text-gray-600 text-sm md:text-base">Contoh: 
                             <span class="font-mono font-bold text-blue-600 cursor-pointer hover:underline" onclick="fillExample('000001')">#000001</span>
                         </p>
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-2 gap-6">
-                    <div class="bg-white rounded-2xl p-6 shadow-lg">
-                        <div class="flex items-center mb-4">
-                            <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center mr-4">
-                                <i class="fas fa-bell text-blue-600 text-xl"></i>
+                <!-- Feature Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                    <div class="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg">
+                        <div class="flex items-center mb-3 md:mb-4">
+                            <div class="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-blue-100 flex items-center justify-center mr-3 md:mr-4 flex-shrink-0">
+                                <i class="fas fa-bell text-blue-600 text-lg md:text-xl"></i>
                             </div>
-                            <h4 class="font-bold text-lg">Notifikasi Langsung</h4>
+                            <h4 class="font-bold text-base md:text-lg">Notifikasi Langsung</h4>
                         </div>
-                        <p class="text-gray-600">Dapatkan pembaruan real-time untuk setiap tahap proses.</p>
+                        <p class="text-gray-600 text-sm md:text-base">Dapatkan pembaruan real-time untuk setiap tahap proses.</p>
                     </div>
-                    <div class="bg-white rounded-2xl p-6 shadow-lg">
-                        <div class="flex items-center mb-4">
-                            <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center mr-4">
-                                <i class="fas fa-map-marker-alt text-green-600 text-xl"></i>
+                    <div class="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg">
+                        <div class="flex items-center mb-3 md:mb-4">
+                            <div class="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-green-100 flex items-center justify-center mr-3 md:mr-4 flex-shrink-0">
+                                <i class="fas fa-map-marker-alt text-green-600 text-lg md:text-xl"></i>
                             </div>
-                            <h4 class="font-bold text-lg">Lacak Kurir</h4>
+                            <h4 class="font-bold text-base md:text-lg">Lacak Kurir</h4>
                         </div>
-                        <p class="text-gray-600">Lihat posisi kurir saat proses jemput/antar berlangsung.</p>
+                        <p class="text-gray-600 text-sm md:text-base">Lihat posisi kurir saat proses jemput/antar berlangsung.</p>
                     </div>
                 </div>
             </div>
             
-            <div id="trackingPlaceholder" class="lg:w-1/2 relative">
-                <div class="bg-gradient-to-br from-white to-blue-50 rounded-3xl p-12 shadow-2xl border border-blue-100 relative overflow-hidden">
+            <!-- Right Content - Placeholder -->
+            <div id="trackingPlaceholder" class="w-full lg:w-1/2 relative">
+                <div class="bg-gradient-to-br from-white to-blue-50 rounded-2xl md:rounded-3xl p-6 md:p-12 shadow-2xl border border-blue-100 relative overflow-hidden">
                     <!-- Decorative circles -->
-                    <div class="absolute top-0 right-0 w-64 h-64 bg-blue-100 rounded-full opacity-20 -mr-32 -mt-32"></div>
-                    <div class="absolute bottom-0 left-0 w-48 h-48 bg-indigo-100 rounded-full opacity-20 -ml-24 -mb-24"></div>
+                    <div class="absolute top-0 right-0 w-40 h-40 md:w-64 md:h-64 bg-blue-100 rounded-full opacity-20 -mr-20 -mt-20 md:-mr-32 md:-mt-32"></div>
+                    <div class="absolute bottom-0 left-0 w-32 h-32 md:w-48 md:h-48 bg-indigo-100 rounded-full opacity-20 -ml-16 -mb-16 md:-ml-24 md:-mb-24"></div>
                     
                     <div class="relative z-10 text-center">
-                        <div class="mb-8 relative inline-block">
-                            <div class="w-32 h-32 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl flex items-center justify-center mx-auto transform rotate-3 shadow-xl">
-                                <i class="fas fa-box-open text-white text-6xl"></i>
+                        <div class="mb-6 md:mb-8 relative inline-block">
+                            <div class="w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto transform rotate-3 shadow-xl">
+                                <i class="fas fa-box-open text-white text-4xl md:text-6xl"></i>
                             </div>
-                            <div class="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                                <i class="fas fa-star text-white text-sm"></i>
-                            </div>
-                        </div>
-                        
-                        <h3 class="text-3xl font-bold text-gray-800 mb-4">Lacak Pesanan Anda</h3>
-                        <p class="text-gray-600 text-lg mb-8 leading-relaxed">Pantau status cucian Anda secara real-time dengan memasukkan nomor pesanan di samping</p>
-                        
-                        <div class="flex items-center justify-center gap-6 mb-8">
-                            <div class="flex items-center gap-2">
-                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-shield-alt text-blue-600"></i>
-                                </div>
-                                <span class="text-sm font-medium text-gray-700">Aman</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-clock text-green-600"></i>
-                                </div>
-                                <span class="text-sm font-medium text-gray-700">Real-time</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-bell text-purple-600"></i>
-                                </div>
-                                <span class="text-sm font-medium text-gray-700">Notifikasi</span>
+                            <div class="absolute -top-1 -right-1 md:-top-2 md:-right-2 w-6 h-6 md:w-8 md:h-8 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                                <i class="fas fa-star text-white text-xs md:text-sm"></i>
                             </div>
                         </div>
                         
-                        <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                                    <span class="text-sm font-medium text-gray-700">Status pelacakan aktif</span>
+                        <h3 class="text-2xl md:text-3xl font-bold text-gray-800 mb-3 md:mb-4">Lacak Pesanan Anda</h3>
+                        <p class="text-gray-600 text-base md:text-lg mb-6 md:mb-8 leading-relaxed px-2">Pantau status cucian Anda secara real-time dengan memasukkan nomor pesanan di atas</p>
+                        
+                        <div class="flex items-center justify-center gap-3 md:gap-6 mb-6 md:mb-8 flex-wrap">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 md:w-10 md:h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-shield-alt text-blue-600 text-sm md:text-base"></i>
+                                </div>
+                                <span class="text-xs md:text-sm font-medium text-gray-700">Aman</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 md:w-10 md:h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-clock text-green-600 text-sm md:text-base"></i>
+                                </div>
+                                <span class="text-xs md:text-sm font-medium text-gray-700">Real-time</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 md:w-10 md:h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-bell text-purple-600 text-sm md:text-base"></i>
+                                </div>
+                                <span class="text-xs md:text-sm font-medium text-gray-700">Notifikasi</span>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white/80 backdrop-blur-sm rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg">
+                            <div class="flex items-center justify-between mb-2 md:mb-3">
+                                <div class="flex items-center gap-2 md:gap-3">
+                                    <div class="w-2 h-2 md:w-3 md:h-3 bg-green-500 rounded-full animate-pulse"></div>
+                                    <span class="text-xs md:text-sm font-medium text-gray-700">Status pelacakan aktif</span>
                                 </div>
                                 <span class="text-xs text-gray-500">24/7</span>
                             </div>
@@ -519,91 +527,186 @@
                 </div>
             </div>
             
-           <div id="trackingResult" class="lg:w-1/2 relative" style="display: none;">
-    <div class="bg-gradient-to-br from-white to-blue-50 rounded-3xl p-8 shadow-2xl border border-blue-100 relative overflow-hidden">
-        <!-- Decorative elements -->
-        <div class="absolute top-0 right-0 w-40 h-40 bg-blue-100 rounded-full opacity-30 -mr-20 -mt-20"></div>
-        <div class="absolute bottom-0 left-0 w-32 h-32 bg-indigo-100 rounded-full opacity-30 -ml-16 -mb-16"></div>
-        
-        <div class="relative z-10">
-            <!-- Header -->
-            <div class="flex justify-between items-start mb-8">
-                <div class="flex-1">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-receipt text-white text-xl"></i>
+            <!-- Right Content - Tracking Result -->
+            <div id="trackingResult" class="w-full lg:w-1/2 relative" style="display: none;">
+                <div class="bg-gradient-to-br from-white to-blue-50 rounded-2xl md:rounded-3xl p-5 md:p-8 shadow-2xl border border-blue-100 relative overflow-hidden">
+                    <!-- Decorative elements -->
+                    <div class="absolute top-0 right-0 w-32 h-32 md:w-40 md:h-40 bg-blue-100 rounded-full opacity-30 -mr-16 -mt-16 md:-mr-20 md:-mt-20"></div>
+                    <div class="absolute bottom-0 left-0 w-24 h-24 md:w-32 md:h-32 bg-indigo-100 rounded-full opacity-30 -ml-12 -mb-12 md:-ml-16 md:-mb-16"></div>
+                    
+                    <div class="relative z-10">
+                        <!-- Header -->
+                        <div class="flex justify-between items-start mb-6 md:mb-8 gap-3">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 md:gap-3 mb-2">
+                                    <div class="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+                                        <i class="fas fa-receipt text-white text-base md:text-xl"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <h3 class="text-lg md:text-2xl font-bold text-gray-800 truncate">
+                                            Pesanan <span id="res_orderID" class="text-blue-600"></span>
+                                        </h3>
+                                        <p class="text-gray-600 text-xs md:text-sm mt-1 truncate">
+                                            <i class="fas fa-user text-blue-500 mr-1"></i>
+                                            <span id="res_customerName" class="font-medium"></span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-end gap-2 md:gap-3 flex-shrink-0">
+                                <span id="res_statusLabel" class="px-3 py-1.5 md:px-5 md:py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full font-semibold text-xs md:text-sm shadow-lg whitespace-nowrap"></span>
+                                <button onclick="closeTracking()" class="w-8 h-8 md:w-10 md:h-10 bg-red-50 hover:bg-red-100 rounded-full flex items-center justify-center transition-all group">
+                                    <i class="fas fa-times text-red-400 group-hover:text-red-600 text-sm md:text-lg"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="text-2xl font-bold text-gray-800">Pesanan <span id="res_orderID" class="text-blue-600"></span></h3>
-                            <p class="text-gray-600 text-sm mt-1">
-                                <i class="fas fa-user text-blue-500 mr-1"></i>
-                                <span id="res_customerName" class="font-medium"></span>
-                            </p>
+                        
+                        <!-- Timeline -->
+                        <div class="bg-white/80 backdrop-blur-sm rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg mb-4 md:mb-6">
+                            <h4 class="text-base md:text-lg font-bold text-gray-800 mb-4 md:mb-6 flex items-center gap-2">
+                                <i class="fas fa-route text-blue-600"></i>
+                                Status Perjalanan
+                            </h4>
+                            <div id="res_timeline" class="space-y-0"></div>
+                        </div>
+                        
+                        <!-- Delivery Info -->
+                        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-xl text-white mb-4 md:mb-6">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 md:gap-4">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <i class="fas fa-clock text-yellow-300 text-sm md:text-base"></i>
+                                        <p class="text-blue-100 text-xs md:text-sm font-medium">Perkiraan Selesai</p>
+                                    </div>
+                                    <p id="res_deliveryTime" class="text-xl md:text-2xl font-bold"></p>
+                                </div>
+                                <div id="res_courierBtn" class="w-full sm:w-auto"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Additional Info Cards -->
+                        <div class="grid grid-cols-2 gap-3 md:gap-4">
+                            <div class="bg-white/80 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 shadow-md">
+                                <div class="flex items-center gap-2 md:gap-3">
+                                    <div class="w-8 h-8 md:w-10 md:h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-check-circle text-green-600 text-sm md:text-base"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-xs text-gray-600">Status</p>
+                                        <p class="text-xs md:text-sm font-bold text-gray-800 truncate">Terlacak</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-white/80 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 shadow-md">
+                                <div class="flex items-center gap-2 md:gap-3">
+                                    <div class="w-8 h-8 md:w-10 md:h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-bell text-purple-600 text-sm md:text-base"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-xs text-gray-600">Notifikasi</p>
+                                        <p class="text-xs md:text-sm font-bold text-gray-800 truncate">Aktif</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="flex flex-col items-end gap-3">
-                    <span id="res_statusLabel" class="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full font-semibold text-sm shadow-lg"></span>
-                    <button onclick="closeTracking()" class="w-10 h-10 bg-red-50 hover:bg-red-100 rounded-full flex items-center justify-center transition-all group">
-                        <i class="fas fa-times text-red-400 group-hover:text-red-600 text-lg"></i>
-                    </button>
-                </div>
             </div>
-            
-            <!-- Timeline -->
-            <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg mb-6">
-                <h4 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
-                    <i class="fas fa-route text-blue-600"></i>
-                    Status Perjalanan
-                </h4>
-                <div id="res_timeline" class="space-y-0"></div>
-            </div>
-            
-            <!-- Delivery Info -->
-            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-6 shadow-xl text-white">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2 mb-2">
-                            <i class="fas fa-clock text-yellow-300"></i>
-                            <p class="text-blue-100 text-sm font-medium">Perkiraan Selesai</p>
-                        </div>
-                        <p id="res_deliveryTime" class="text-2xl font-bold"></p>
-                    </div>
-                    <div id="res_courierBtn"></div>
-                </div>
-            </div>
-            
-            <!-- Additional Info Cards -->
-            <div class="grid grid-cols-2 gap-4 mt-6">
-                <div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-md">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-check-circle text-green-600"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-600">Status</p>
-                            <p class="text-sm font-bold text-gray-800">Terlacak</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-md">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-bell text-purple-600"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-600">Notifikasi</p>
-                            <p class="text-sm font-bold text-gray-800">Aktif</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
         </div>
     </div>
 </section>
+
+<style>
+.gradient-text {
+    background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Ensure text doesn't overflow on mobile */
+@media (max-width: 640px) {
+    h2, h3, h4 {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+}
+</style>
+
+<script>
+function fillExample(orderNum) {
+    document.getElementById('trackingInput').value = orderNum;
+}
+
+function trackOrder() {
+    const orderNum = document.getElementById('trackingInput').value.trim();
+    
+    if (!orderNum) {
+        alert('Masukkan nomor pesanan');
+        return;
+    }
+    
+    // Simulasi data pesanan
+    const orderData = {
+        orderID: orderNum,
+        customerName: 'John Doe',
+        status: 'Dalam Proses',
+        deliveryTime: '16:00 WIB, Hari Ini',
+        timeline: [
+            { status: 'Pesanan Diterima', time: '10:00 WIB', completed: true },
+            { status: 'Dijemput', time: '11:30 WIB', completed: true },
+            { status: 'Sedang Dicuci', time: '14:00 WIB', completed: true },
+            { status: 'Siap Diantar', time: '15:30 WIB', completed: false },
+            { status: 'Selesai', time: '16:00 WIB', completed: false }
+        ]
+    };
+    
+    displayTrackingResult(orderData);
+}
+
+function displayTrackingResult(data) {
+    document.getElementById('res_orderID').textContent = '#' + data.orderID;
+    document.getElementById('res_customerName').textContent = data.customerName;
+    document.getElementById('res_statusLabel').textContent = data.status;
+    document.getElementById('res_deliveryTime').textContent = data.deliveryTime;
+    
+    // Timeline
+    const timeline = document.getElementById('res_timeline');
+    timeline.innerHTML = data.timeline.map((item, index) => `
+        <div class="flex gap-3 md:gap-4 ${index !== data.timeline.length - 1 ? 'pb-6 md:pb-8' : ''}">
+            <div class="flex flex-col items-center">
+                <div class="w-8 h-8 md:w-10 md:h-10 rounded-full ${item.completed ? 'bg-gradient-to-br from-green-400 to-green-600' : 'bg-gray-200'} flex items-center justify-center shadow-md flex-shrink-0">
+                    <i class="fas fa-${item.completed ? 'check' : 'clock'} text-white text-xs md:text-sm"></i>
+                </div>
+                ${index !== data.timeline.length - 1 ? `<div class="w-0.5 md:w-1 flex-1 ${item.completed ? 'bg-green-400' : 'bg-gray-200'} mt-2"></div>` : ''}
+            </div>
+            <div class="flex-1 ${index !== data.timeline.length - 1 ? 'pb-2' : ''}">
+                <p class="font-bold text-gray-800 text-sm md:text-base">${item.status}</p>
+                <p class="text-gray-600 text-xs md:text-sm mt-1">${item.time}</p>
+            </div>
+        </div>
+    `).join('');
+    
+    // Courier button
+    const courierBtn = document.getElementById('res_courierBtn');
+    courierBtn.innerHTML = `
+        <button class="bg-white text-blue-600 hover:bg-blue-50 px-4 md:px-6 py-2 md:py-3 rounded-full font-semibold transition-all shadow-lg text-xs md:text-sm whitespace-nowrap w-full sm:w-auto">
+            <i class="fas fa-map-marker-alt mr-2"></i>
+            Lacak Kurir
+        </button>
+    `;
+    
+    // Show result, hide placeholder
+    document.getElementById('trackingPlaceholder').style.display = 'none';
+    document.getElementById('trackingResult').style.display = 'block';
+}
+
+function closeTracking() {
+    document.getElementById('trackingResult').style.display = 'none';
+    document.getElementById('trackingPlaceholder').style.display = 'block';
+    document.getElementById('trackingInput').value = '';
+}
+</script>
 
     <!-- Pricing Section -->
 <section id="pricing" class="py-20 bg-gradient-to-br from-gray-50 to-blue-50">

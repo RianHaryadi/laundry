@@ -14,6 +14,9 @@ class MachineSeeder extends Seeder
     public function run(): void
     {
         $machines = [
+            // ============================
+            // MESIN CUCI (WASHER)
+            // ============================
             [
                 'outlet_id' => 1,
                 'name' => 'Washer A',
@@ -29,7 +32,7 @@ class MachineSeeder extends Seeder
                 'last_maintenance' => Carbon::now()->subDays(40),
                 'maintenance_interval' => 90,
                 'specifications' => 'Capacity 8kg, 220V, 500W',
-                'notes' => 'Mesin utama untuk daily wash',
+                'notes' => 'Mesin utama untuk cuci kering dan cuci setrika',
             ],
 
             [
@@ -47,27 +50,33 @@ class MachineSeeder extends Seeder
                 'last_maintenance' => Carbon::now()->subDays(75),
                 'maintenance_interval' => 90,
                 'specifications' => 'Capacity 7kg, EcoBubble, 450W',
-                'notes' => null,
+                'notes' => 'Untuk cucian kiloan dan satuan (bed cover, sprei, jaket, tas, kebaya, jas)',
             ],
 
+            // ============================
+            // MESIN PENGERING (DRYER)
+            // ============================
             [
                 'outlet_id' => 1,
                 'name' => 'Dryer A',
                 'serial_number' => 'DR-001',
                 'type' => 'dryer',
-                'status' => 'maintenance',
+                'status' => 'operational',
                 'manufacturer' => 'Electrolux',
                 'model' => 'DryPro 6kg',
                 'purchase_date' => '2023-10-01',
                 'purchase_price' => 4200000,
                 'warranty_until' => '2025-10-01',
                 'supplier' => 'PT Mesin Laundry',
-                'last_maintenance' => Carbon::now()->subDays(95),
+                'last_maintenance' => Carbon::now()->subDays(35),
                 'maintenance_interval' => 90,
-                'specifications' => 'Capacity 6kg, 220V',
-                'notes' => 'Perlu pengecekan belt',
+                'specifications' => 'Capacity 6kg, 220V, Heat Pump',
+                'notes' => 'Untuk pengeringan semua jenis cucian',
             ],
 
+            // ============================
+            // SETRIKA (IRONER)
+            // ============================
             [
                 'outlet_id' => 1,
                 'name' => 'Ironer Press',
@@ -83,7 +92,25 @@ class MachineSeeder extends Seeder
                 'last_maintenance' => Carbon::now()->subDays(20),
                 'maintenance_interval' => 60,
                 'specifications' => 'Mini press, steam function',
-                'notes' => null,
+                'notes' => 'Untuk setrika cucian kiloan dan satuan',
+            ],
+
+            [
+                'outlet_id' => 1,
+                'name' => 'Steam Iron',
+                'serial_number' => 'IR-002',
+                'type' => 'ironer',
+                'status' => 'operational',
+                'manufacturer' => 'Philips',
+                'model' => 'PerfectCare',
+                'purchase_date' => '2024-03-05',
+                'purchase_price' => 1200000,
+                'warranty_until' => '2026-03-05',
+                'supplier' => 'PT Electronic Supply',
+                'last_maintenance' => Carbon::now()->subDays(15),
+                'maintenance_interval' => 60,
+                'specifications' => 'Steam iron, 2000W',
+                'notes' => 'Untuk finishing dan setrika detail (jas, kebaya)',
             ],
         ];
 
