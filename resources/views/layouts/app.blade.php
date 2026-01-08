@@ -84,13 +84,13 @@
         @stack('styles')
     </style>
 </head>
-<body>
+<body>s
     <!-- Navigation -->
     <nav class="bg-white/95 backdrop-blur-md shadow-sm fixed top-0 left-0 right-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <!-- Logo -->
-                <a href="{{ url('/') }}" class="flex items-center space-x-2">
+                <a href="/" class="flex items-center space-x-2">
                     <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
                         <i class="fas fa-tshirt text-white text-lg"></i>
                     </div>
@@ -101,10 +101,10 @@
                 
                 <!-- Desktop Menu -->
                 <div class="hidden md:flex items-center space-x-8">
-                    <a href="{{ url('/') }}" class="nav-link text-gray-700 hover:text-blue-600 font-medium {{ request()->is('/') ? 'active text-blue-600' : '' }}">
+                    <a href="/" class="nav-link text-gray-700 hover:text-blue-600 font-medium active text-blue-600">
                         Home
                     </a>
-                    <a href="{{ url('/tracking') }}" class="nav-link text-gray-700 hover:text-blue-600 font-medium {{ request()->is('tracking') ? 'active text-blue-600' : '' }}">
+                    <a href="/tracking" class="nav-link text-gray-700 hover:text-blue-600 font-medium">
                         Tracking
                     </a>
                 </div>
@@ -159,24 +159,17 @@
                 </button>
             </div>
         </div>
+
         
         <!-- Mobile Menu -->
         <div id="mobile-menu" class="mobile-menu md:hidden bg-white border-t border-gray-100">
             <div class="px-4 py-4 space-y-1">
-                <a href="{{ url('/') }}" class="block px-4 py-3 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-blue-600 font-medium {{ request()->is('/') ? 'bg-blue-50 text-blue-600' : '' }}">
+                <!-- Menu Items - Same as Desktop -->
+                <a href="/" class="block px-4 py-3 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-blue-600 font-medium bg-blue-50 text-blue-600">
                     Home
                 </a>
-                <a href="#services" class="block px-4 py-3 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-blue-600 font-medium">
-                    Services
-                </a>
-                <a href="{{ url('/tracking') }}" class="block px-4 py-3 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-blue-600 font-medium {{ request()->is('tracking') ? 'bg-blue-50 text-blue-600' : '' }}">
+                <a href="/tracking" class="block px-4 py-3 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-blue-600 font-medium">
                     Tracking
-                </a>
-                <a href="{{ url('/booking') }}" class="block px-4 py-3 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-blue-600 font-medium {{ request()->is('booking') ? 'bg-blue-50 text-blue-600' : '' }}">
-                    Booking
-                </a>
-                <a href="#about" class="block px-4 py-3 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-blue-600 font-medium">
-                    About
                 </a>
                 
                 @auth('customer')
@@ -213,6 +206,14 @@
                         </a>
                     </div>
                 @endauth
+                
+                <!-- Guest Section (if not logged in) - Uncomment if needed
+                <div class="pt-4 border-t border-gray-200">
+                    <a href="/login" class="block btn-primary py-3 rounded-lg font-medium text-white text-center">
+                        Login
+                    </a>
+                </div>
+                -->
             </div>
         </div>
     </nav>

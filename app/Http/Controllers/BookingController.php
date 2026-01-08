@@ -66,102 +66,75 @@ class BookingController extends Controller
         if (!Auth::guard('customer')->check()) {
             $rules['name'] = 'required|string|max:255';
             $rules['phone'] = 'required|string|min:10|max:20';
-            $rules['email'] = 'nullable|email';
         }
 
         $validated = $request->validate($rules);
 
         try {
-            $outlet = Outlet::findOrFail($validated['outlet_id']);
             $service = Service::findOrFail($validated['service_id']);
+            $outlet = Outlet::findOrFail($validated['outlet_id']);
             
+            // Cari kurir aktif di outlet tersebut
             $courier = User::where('outlet_id', $outlet->id)
                 ->where('role', 'courier')
                 ->where('is_active', true)
                 ->first();
 
-            // Prepare order data
-            $orderData = [
-                'outlet_id' => $validated['outlet_id'],
-                'delivery_method' => $validated['delivery_method'],
-                'service_speed' => $validated['service_speed'],
-                'courier_id' => $courier?->id,
-                'status' => 'pending',
-                'payment_status' => 'pending',
-                'payment_gateway' => 'cash',
-                'pickup_time' => $validated['pickup_date'] . ' ' . explode('-', $validated['pickup_time'])[0] . ':00',
-                'notes' => $validated['notes'] ?? null,
-                'is_free_service' => $request->has('is_free_service'),
-                'total_weight' => 0,
-                'total_price' => 0,
-                'discount_amount' => 0,
-                'final_price' => 0,
-                'base_price' => 0,
-            ];
-
-            // Customer data
+            // Simpan Order
+            $order = new Order();
+            $order->outlet_id = $validated['outlet_id'];
+            $order->delivery_method = $validated['delivery_method'];
+            $order->service_speed = $validated['service_speed'];
+            $order->courier_id = $courier?->id;
+            $order->status = 'pending';
+            $order->payment_status = 'pending';
+            $order->pickup_time = $validated['pickup_date'] . ' ' . explode('-', $validated['pickup_time'])[0] . ':00';
+            $order->notes = $validated['notes'];
+            $order->is_free_service = $request->has('is_free_service');
+            
             if (Auth::guard('customer')->check()) {
                 $customer = Auth::guard('customer')->user();
-                $orderData['customer_id'] = $customer->id;
-                $orderData['customer_type'] = 'member';
-                $orderData['guest_name'] = null;
-                $orderData['guest_phone'] = null;
-                $orderData['guest_address'] = $validated['address'];
+                $order->customer_id = $customer->id;
+                $order->customer_type = 'member';
+                $order->guest_address = $validated['address'];
             } else {
-                $orderData['customer_id'] = null;
-                $orderData['customer_type'] = 'guest';
-                $orderData['guest_name'] = $validated['name'];
-                $orderData['guest_phone'] = $validated['phone'];
-                $orderData['guest_address'] = $validated['address'];
+                $order->customer_type = 'guest';
+                $order->guest_name = $validated['name'];
+                $order->guest_phone = $validated['phone'];
+                $order->guest_address = $validated['address'];
             }
+            $order->save();
 
-            // Create order
-            $order = Order::create($orderData);
-
-            // Create order item
-            OrderItem::create([
-                'order_id' => $order->id,
-                'service_id' => $validated['service_id'],
-                'pricing_type' => $service->pricing_type ?? 'kg',
-                'price_per_kg' => $service->price_per_kg ?? 0,
-                'price_per_unit' => $service->price_per_unit ?? 0,
-                'quantity' => 0,
+            // Simpan Item
+            $order->items()->create([
+                'service_id' => $service->id,
+                'quantity' => 0, // Akan diupdate admin setelah timbang
                 'weight' => 0,
                 'price' => 0,
-                'subtotal' => 0,
             ]);
 
-            // Create tracking
-            $deliveryMethod = $validated['delivery_method'];
-            if (in_array($deliveryMethod, ['pickup', 'delivery', 'pickup_delivery'])) {
-                $this->createTrackingRecords($order, $deliveryMethod, $courier, $validated['address']);
+            // Buat Tracking Record
+            if (in_array($order->delivery_method, ['pickup', 'pickup_delivery'])) {
+                $order->trackings()->create([
+                    'type' => 'pickup',
+                    'status' => 'pending',
+                    'scheduled_time' => $order->pickup_time,
+                    'pickup_address' => $order->guest_address,
+                    'notes' => 'Menunggu penjemputan oleh kurir'
+                ]);
             }
 
-            // Generate booking details for notification
             $bookingDetails = $this->generateBookingDetails($order, $service, $outlet, $validated);
 
-            Log::info('Booking created successfully', [
-                'order_id' => $order->id,
-                'customer_type' => $order->customer_type,
-                'service' => $service->name,
-            ]);
-
-            // Redirect dengan session flash data untuk modal
+            // Redirect ke HOME dengan membawa data session
             return redirect()->route('home')->with([
                 'booking_success' => true,
-                'booking_details' => $bookingDetails,
+                'booking_details' => $bookingDetails
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Booking creation failed: ' . $e->getMessage(), [
-                'request_data' => $request->except(['_token']),
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return back()->withErrors([
-                'error' => 'Terjadi kesalahan saat membuat booking. Silakan coba lagi.'
-            ])->withInput();
+            Log::error('Booking Error: ' . $e->getMessage());
+            return back()->withErrors(['error' => 'Gagal membuat pesanan.'])->withInput();
         }
     }
 
