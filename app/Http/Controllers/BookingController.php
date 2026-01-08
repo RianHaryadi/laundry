@@ -71,67 +71,145 @@ class BookingController extends Controller
 
         $validated = $request->validate($rules);
 
-        $outlet = Outlet::findOrFail($validated['outlet_id']);
-        $courier = User::where('outlet_id', $outlet->id)
-            ->where('role', 'courier')
-            ->where('is_active', true)
-            ->first();
+        try {
+            $outlet = Outlet::findOrFail($validated['outlet_id']);
+            $service = Service::findOrFail($validated['service_id']);
+            
+            $courier = User::where('outlet_id', $outlet->id)
+                ->where('role', 'courier')
+                ->where('is_active', true)
+                ->first();
 
-        // PENTING: Tidak include service_id di orderData
-        $orderData = [
-            'outlet_id' => $validated['outlet_id'],
-            // 'service_id' => $validated['service_id'], // DIHAPUS
-            'delivery_method' => $validated['delivery_method'],
-            'service_speed' => $validated['service_speed'],
-            'courier_id' => $courier?->id,
-            'status' => 'pending',
-            'payment_status' => 'pending',
-            'pickup_time' => $validated['pickup_date'] . ' ' . explode('-', $validated['pickup_time'])[0] . ':00',
-            'notes' => $validated['notes'] ?? null,
-            'is_free_service' => $request->has('is_free_service'),
-            'total_weight' => 0,
-            'total_price' => 0,
-            'discount_amount' => 0,
-            'final_price' => 0,
-            'base_price' => 0,
+            // Prepare order data
+            $orderData = [
+                'outlet_id' => $validated['outlet_id'],
+                'delivery_method' => $validated['delivery_method'],
+                'service_speed' => $validated['service_speed'],
+                'courier_id' => $courier?->id,
+                'status' => 'pending',
+                'payment_status' => 'pending',
+                'payment_gateway' => 'cash',
+                'pickup_time' => $validated['pickup_date'] . ' ' . explode('-', $validated['pickup_time'])[0] . ':00',
+                'notes' => $validated['notes'] ?? null,
+                'is_free_service' => $request->has('is_free_service'),
+                'total_weight' => 0,
+                'total_price' => 0,
+                'discount_amount' => 0,
+                'final_price' => 0,
+                'base_price' => 0,
+            ];
+
+            // Customer data
+            if (Auth::guard('customer')->check()) {
+                $customer = Auth::guard('customer')->user();
+                $orderData['customer_id'] = $customer->id;
+                $orderData['customer_type'] = 'member';
+                $orderData['guest_name'] = null;
+                $orderData['guest_phone'] = null;
+                $orderData['guest_address'] = $validated['address'];
+            } else {
+                $orderData['customer_id'] = null;
+                $orderData['customer_type'] = 'guest';
+                $orderData['guest_name'] = $validated['name'];
+                $orderData['guest_phone'] = $validated['phone'];
+                $orderData['guest_address'] = $validated['address'];
+            }
+
+            // Create order
+            $order = Order::create($orderData);
+
+            // Create order item
+            OrderItem::create([
+                'order_id' => $order->id,
+                'service_id' => $validated['service_id'],
+                'pricing_type' => $service->pricing_type ?? 'kg',
+                'price_per_kg' => $service->price_per_kg ?? 0,
+                'price_per_unit' => $service->price_per_unit ?? 0,
+                'quantity' => 0,
+                'weight' => 0,
+                'price' => 0,
+                'subtotal' => 0,
+            ]);
+
+            // Create tracking
+            $deliveryMethod = $validated['delivery_method'];
+            if (in_array($deliveryMethod, ['pickup', 'delivery', 'pickup_delivery'])) {
+                $this->createTrackingRecords($order, $deliveryMethod, $courier, $validated['address']);
+            }
+
+            // Generate booking details for notification
+            $bookingDetails = $this->generateBookingDetails($order, $service, $outlet, $validated);
+
+            Log::info('Booking created successfully', [
+                'order_id' => $order->id,
+                'customer_type' => $order->customer_type,
+                'service' => $service->name,
+            ]);
+
+            // Redirect dengan session flash data untuk modal
+            return redirect()->route('home')->with([
+                'booking_success' => true,
+                'booking_details' => $bookingDetails,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Booking creation failed: ' . $e->getMessage(), [
+                'request_data' => $request->except(['_token']),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return back()->withErrors([
+                'error' => 'Terjadi kesalahan saat membuat booking. Silakan coba lagi.'
+            ])->withInput();
+        }
+    }
+
+    /**
+     * Generate booking details untuk ditampilkan di modal
+     */
+    private function generateBookingDetails(Order $order, Service $service, Outlet $outlet, array $validated): array
+    {
+        $customerName = $order->customer_type === 'member' 
+            ? $order->customer->name 
+            : $order->guest_name;
+
+        $deliveryMethodLabel = match($order->delivery_method) {
+            'walk_in' => 'Walk-in (Antar Sendiri)',
+            'pickup' => 'Pickup (Dijemput)',
+            'delivery' => 'Delivery (Diantar)',
+            'pickup_delivery' => 'Pickup & Delivery',
+            default => ucfirst($order->delivery_method),
+        };
+
+        $serviceSpeedLabel = match($order->service_speed) {
+            'regular' => 'Regular (2-3 hari)',
+            'express' => 'Express (1 hari)',
+            'same_day' => 'Same Day (Hari ini)',
+            default => ucfirst($order->service_speed),
+        };
+
+        $pickupTime = Carbon::parse($order->pickup_time);
+        $estimatedCompletion = $this->calculateEstimatedDelivery($pickupTime, $order->service_speed);
+
+        return [
+            'order_id' => '#' . str_pad($order->id, 6, '0', STR_PAD_LEFT),
+            'customer_name' => $customerName,
+            'customer_type' => $order->customer_type === 'member' ? 'Member' : 'Guest',
+            'service_name' => $service->name,
+            'outlet_name' => $outlet->name,
+            'outlet_address' => $outlet->address,
+            'delivery_method' => $deliveryMethodLabel,
+            'service_speed' => $serviceSpeedLabel,
+            'pickup_date' => $pickupTime->format('d M Y'),
+            'pickup_time' => $pickupTime->format('H:i'),
+            'pickup_datetime' => $pickupTime->format('l, d F Y - H:i'),
+            'estimated_completion' => $estimatedCompletion->format('d M Y - H:i'),
+            'address' => $validated['address'],
+            'notes' => $order->notes ?? '-',
+            'is_free_service' => $order->is_free_service,
+            'has_courier' => !is_null($order->courier_id),
         ];
-
-        if (Auth::guard('customer')->check()) {
-            $customer = Auth::guard('customer')->user();
-            $orderData['customer_id'] = $customer->id;
-            $orderData['customer_type'] = 'member';
-            $orderData['guest_name'] = null;
-            $orderData['guest_phone'] = null;
-            $orderData['guest_address'] = $validated['address'];
-        } else {
-            $orderData['customer_id'] = null;
-            $orderData['customer_type'] = 'guest';
-            $orderData['guest_name'] = $validated['name'];
-            $orderData['guest_phone'] = $validated['phone'];
-            $orderData['guest_address'] = $validated['address'];
-        }
-
-        // Create order
-        $order = Order::create($orderData);
-
-        // Create order item - Service disimpan di sini
-        OrderItem::create([
-            'order_id' => $order->id,
-            'service_id' => $validated['service_id'], // Service disimpan di OrderItem
-            'pricing_type' => 'kg',
-            'quantity' => 0,
-            'weight' => 0,
-            'price' => 0,
-            'subtotal' => 0,
-        ]);
-
-        // Create tracking
-        $deliveryMethod = $validated['delivery_method'];
-        if (in_array($deliveryMethod, ['pickup', 'delivery', 'pickup_delivery'])) {
-            $this->createTrackingRecords($order, $deliveryMethod, $courier, $validated['address']);
-        }
-
-        return redirect()->route('home')->with('success', 'Booking berhasil! Tim kami akan segera menghubungi Anda untuk konfirmasi penjemputan.');
     }
 
     private function createTrackingRecords(Order $order, string $deliveryMethod, ?User $courier, string $address): void

@@ -11,20 +11,12 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        // Get or create outlets
-        $outletPusat = Outlet::firstOrCreate(
-            ['name' => 'LaundryMate Pusat'],
+        // Get or create outlet
+        $outlet = Outlet::firstOrCreate(
+            ['name' => 'Rizki Laundry'],
             [
                 'address' => 'Jl. Margonda Raya No. 123, Depok',
                 'phone'   => '+62 812-3456-7890',
-            ]
-        );
-
-        $outletBeji = Outlet::firstOrCreate(
-            ['name' => 'LaundryMate Beji'],
-            [
-                'address' => 'Jl. Raya Beji No. 45, Depok',
-                'phone'   => '+62 812-3456-7891',
             ]
         );
 
@@ -32,57 +24,66 @@ class UserSeeder extends Seeder
 
             // ========== OWNER ==========
             [
-                'name' => 'Owner LaundryMate',
-                'email' => 'owner@laundrymate.com',
+                'name' => 'Rizki Maulana',
+                'email' => 'owner.rizkilaundry@gmail.com',
                 'password' => Hash::make('password'),
                 'role' => 'owner',
                 'outlet_id' => null,
             ],
 
-            // ========== OUTLET PUSAT (3 user) ==========
+            // ========== ADMIN (2 user) ==========
             [
-                'name' => 'Admin Pusat',
-                'email' => 'admin.pusat@laundrymate.com',
+                'name' => 'Budi Santoso',
+                'email' => 'budi.santoso@gmail.com',
                 'password' => Hash::make('password'),
                 'role' => 'admin',
-                'outlet_id' => $outletPusat->id,
+                'outlet_id' => $outlet->id,
             ],
             [
-                'name' => 'Staff Pusat',
-                'email' => 'staff.pusat@laundrymate.com',
+                'name' => 'Andi Wijaya',
+                'email' => 'andi.wijaya@gmail.com',
                 'password' => Hash::make('password'),
-                'role' => 'staff',
-                'outlet_id' => $outletPusat->id,
-            ],
-            [
-                'name' => 'Courier Pusat',
-                'email' => 'courier.pusat@laundrymate.com',
-                'password' => Hash::make('password'),
-                'role' => 'courier',
-                'outlet_id' => $outletPusat->id,
+                'role' => 'admin',
+                'outlet_id' => $outlet->id,
             ],
 
-            // ========== OUTLET BEJI (3 user) ==========
+            // ========== STAFF (3 user) ==========
             [
-                'name' => 'Admin Beji',
-                'email' => 'admin.beji@laundrymate.com',
-                'password' => Hash::make('password'),
-                'role' => 'admin',
-                'outlet_id' => $outletBeji->id,
-            ],
-            [
-                'name' => 'Staff Beji',
-                'email' => 'staff.beji@laundrymate.com',
+                'name' => 'Siti Nurhaliza',
+                'email' => 'siti.nurhaliza@gmail.com',
                 'password' => Hash::make('password'),
                 'role' => 'staff',
-                'outlet_id' => $outletBeji->id,
+                'outlet_id' => $outlet->id,
             ],
             [
-                'name' => 'Courier Beji',
-                'email' => 'courier.beji@laundrymate.com',
+                'name' => 'Dewi Lestari',
+                'email' => 'dewi.lestari@gmail.com',
+                'password' => Hash::make('password'),
+                'role' => 'staff',
+                'outlet_id' => $outlet->id,
+            ],
+            [
+                'name' => 'Rini Susanti',
+                'email' => 'rini.susanti@gmail.com',
+                'password' => Hash::make('password'),
+                'role' => 'staff',
+                'outlet_id' => $outlet->id,
+            ],
+
+            // ========== COURIER (2 user) ==========
+            [
+                'name' => 'Ahmad Fauzi',
+                'email' => 'ahmad.fauzi@gmail.com',
                 'password' => Hash::make('password'),
                 'role' => 'courier',
-                'outlet_id' => $outletBeji->id,
+                'outlet_id' => $outlet->id,
+            ],
+            [
+                'name' => 'Doni Prasetyo',
+                'email' => 'doni.prasetyo@gmail.com',
+                'password' => Hash::make('password'),
+                'role' => 'courier',
+                'outlet_id' => $outlet->id,
             ],
 
         ];

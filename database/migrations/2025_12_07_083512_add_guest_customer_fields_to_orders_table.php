@@ -13,6 +13,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
+            // Add customer_id first (if you need it)
+            $table->foreignId('customer_id')->nullable()->after('id');
+            
             // Add customer_type field after customer_id
             $table->enum('customer_type', ['member', 'guest'])
                   ->default('member')
@@ -24,15 +27,8 @@ return new class extends Migration
             $table->text('guest_address')->nullable()->after('guest_phone');
         });
 
-        // Update existing records: set customer_type based on customer_id
-        DB::statement("
-            UPDATE orders 
-            SET customer_type = CASE 
-                WHEN customer_id IS NOT NULL THEN 'member'
-                ELSE 'guest'
-            END
-            WHERE customer_type IS NULL OR customer_type = 'member'
-        ");
+        // Update existing records: set all existing orders as 'guest' since they don't have customer_id
+        DB::table('orders')->update(['customer_type' => 'guest']);
     }
 
     /**
@@ -42,6 +38,7 @@ return new class extends Migration
     {
         Schema::table('orders', function (Blueprint $table) {
             $table->dropColumn([
+                'customer_id',
                 'customer_type',
                 'guest_name',
                 'guest_phone',

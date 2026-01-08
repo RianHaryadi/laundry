@@ -28,6 +28,7 @@ class Customer extends Authenticatable
         'notes',
         'membership_level', // bronze, silver, gold, platinum, vip
         'points', // Loyalty points (opsional, berbeda dari voucher)
+        
     ];
 
     protected $hidden = [

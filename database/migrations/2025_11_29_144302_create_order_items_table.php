@@ -28,14 +28,15 @@ return new class extends Migration
             // Per kg
             $table->decimal('weight', 8, 2)->nullable();
 
+            // Pricing fields - just define them in the order you want
+            $table->decimal('price_per_kg', 15, 2)->nullable()->default(0.00);
+            $table->decimal('price_per_unit', 15, 2)->nullable()->default(0.00);
+
             // Harga final (qty/weight × harga service)
             $table->integer('price')->default(0);
 
-            $table->decimal('price_per_kg', 15, 2)->nullable()->default(0.00)->after('pricing_type');
-            $table->decimal('price_per_unit', 15, 2)->nullable()->default(0.00)->after('price_per_kg');
-
-            $table->string('storage_location', 255)->nullable()->after('subtotal');
-            $table->json('photo_proof')->nullable()->change();
+            $table->string('storage_location', 255)->nullable();
+            $table->json('photo_proof')->nullable();
 
             $table->timestamps();
         });

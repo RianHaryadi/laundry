@@ -1,3 +1,4 @@
+// database/migrations/xxxx_xx_xx_add_membership_level_to_customers_table.php
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -9,14 +10,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('customers', function (Blueprint $table) {
-            $table->integer('total_points_earned')->default(0);
+            $table->enum('membership_level', ['regular', 'silver', 'gold', 'vip'])
+                  ->default('regular')
+                  ->after('phone'); // sesuaikan posisinya
         });
     }
 
     public function down(): void
     {
         Schema::table('customers', function (Blueprint $table) {
-            $table->dropColumn('total_points_earned');
+            $table->dropColumn('membership_level');
         });
     }
 };

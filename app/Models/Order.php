@@ -287,48 +287,50 @@ class Order extends Model
      * Mark order as completed and give coupon to member
      * Dipanggil ketika status order diubah menjadi 'completed'
      */
-    public function markAsCompleted(): bool
-    {
-        // Update status ke completed
-        $this->update(['status' => 'completed']);
-        
-        // Berikan kupon jika customer adalah member dan belum dapat kupon
-        if ($this->customer && $this->customer->isMember() && !$this->coupon_earned) {
-            $this->giveRewardCoupon();
-        }
-        
-        return true;
+   public function markAsCompleted(): bool
+{
+    // Update status ke completed
+    $this->update(['status' => 'completed']);
+
+    // Berikan kupon reward jika belum pernah diberikan
+    if (!$this->coupon_earned) {
+        $this->handleRewardSystem();
     }
+    
+    return true;
+}
 
     /**
-     * Give reward coupon to member customer
-     * Hanya member yang dapat kupon reward
-     */
-    public function giveRewardCoupon(): bool
-    {
-        // Cek apakah customer adalah member
-        if (!$this->customer || !$this->customer->isMember()) {
-            return false;
-        }
-
-        // Cek apakah sudah pernah dapat kupon dari order ini
-        if ($this->coupon_earned) {
-            return false;
-        }
-
-        // Tambahkan kupon ke customer
-        $success = $this->customer->addCoupon();
-
-        if ($success) {
-            // Tandai bahwa order ini sudah memberikan kupon
-            $this->update(['coupon_earned' => true]);
-            
-            // OPTIONAL: Log atau tracking
-            \Log::info("Coupon rewarded to customer #{$this->customer_id} from order #{$this->id}");
-        }
-
-        return $success;
+ * Give reward coupon to member customer
+ * Helper method untuk memberikan 1 kupon
+ */
+public function giveRewardCoupon(): bool
+{
+    // Cek apakah customer adalah member
+    if (!$this->customer || !$this->customer->isMember()) {
+        return false;
     }
+
+    // Cek apakah sudah pernah dapat kupon dari order ini
+    if ($this->coupon_earned) {
+        return false;
+    }
+
+    try {
+        // Tambahkan 1 kupon
+        $this->customer->increment('available_coupons', 1);
+        
+        // Tandai order sudah memberikan kupon
+        $this->update(['coupon_earned' => true]);
+        
+        \Log::info("Coupon rewarded to customer #{$this->customer_id} from order #{$this->id}");
+        
+        return true;
+    } catch (\Exception $e) {
+        \Log::error("Failed to give coupon: " . $e->getMessage());
+        return false;
+    }
+}
 
     /**
      * Check if this order has given reward coupon
@@ -338,7 +340,6 @@ class Order extends Model
         return $this->coupon_earned === true;
     }
 
-    // --- Badge Colors ---
 
     public function getStatusColor(): string
     {
@@ -602,13 +603,20 @@ public function recalculatePricesFromItems(): void
 }
 
 /**
- * Menangani sistem reward (6x cuci gratis 1)
+ * ============================================
+ * KUPON REWARD SYSTEM - FIXED VERSION
+ * ============================================
+ */
+
+/**
+ * Menangani sistem reward (Setiap order completed dapat 1 kupon)
+ * Dipanggil otomatis dari boot() saat status berubah ke completed
  */
 protected function handleRewardSystem(): void
 {
     $customer = $this->customer;
     
-    // Validasi: harus member, belum dapat reward, dan bukan free service
+    // Validasi: harus member, belum dapat reward dari order ini, dan bukan free service
     if (!$customer || 
         $this->customer_type !== 'member' || 
         $this->coupon_earned || 
@@ -616,38 +624,44 @@ protected function handleRewardSystem(): void
         return;
     }
     
-    // Hitung hanya order BERBAYAR yang sudah COMPLETED
-    $paidOrdersCount = $customer->orders()
-        ->where('status', 'completed')
-        ->where('is_free_service', false)
-        ->count();
-
-    // Tandai order ini sudah dapat reward (mencegah double reward)
-    $this->updateQuietly(['coupon_earned' => true]);
-
-    // Cek apakah sudah mencapai kelipatan 6
-    if ($paidOrdersCount > 0 && $paidOrdersCount % 6 === 0) {
-        try {
-            // Tambahkan 6 kupon ke saldo yang sudah ada (Stacking)
-            $customer->increment('available_coupons', 6);
-
-            \Log::info("Reward earned for customer #{$customer->id}", [
-                'order_id' => $this->id,
-                'paid_orders_count' => $paidOrdersCount,
-                'new_coupon_balance' => $customer->available_coupons,
-            ]);
-
-            // Kirim notifikasi jika ada Filament
-            if (class_exists('\Filament\Notifications\Notification')) {
-                \Filament\Notifications\Notification::make()
-                    ->success()
-                    ->title('🎉 Reward 6x Cuci Tercapai!')
-                    ->body("Pelanggan {$customer->name} mendapat tambahan 6 kupon! Total: {$customer->available_coupons}")
-                    ->send();
+    try {
+        // Tambahkan 1 kupon untuk order yang completed
+        $customer->increment('available_coupons', 1);
+        
+        // Tandai order ini sudah memberikan reward
+        $this->updateQuietly(['coupon_earned' => true]);
+        
+        // Hitung total order berbayar yang completed
+        $paidOrdersCount = $customer->orders()
+            ->where('status', 'completed')
+            ->where('is_free_service', false)
+            ->count();
+        
+        \Log::info("Reward given to customer #{$customer->id}", [
+            'order_id' => $this->id,
+            'coupons_added' => 1,
+            'total_coupons' => $customer->available_coupons,
+            'completed_orders' => $paidOrdersCount,
+        ]);
+        
+        // Kirim notifikasi
+        if (class_exists('\Filament\Notifications\Notification')) {
+            $message = "Pelanggan {$customer->name} mendapat +1 kupon! Total: {$customer->available_coupons}";
+            
+            // Bonus notifikasi jika mencapai kelipatan 6
+            if ($paidOrdersCount % 6 === 0) {
+                $message = "🎉 {$customer->name} mencapai {$paidOrdersCount}x cuci! Total kupon: {$customer->available_coupons}";
             }
-        } catch (\Exception $e) {
-            \Log::error("Failed to give reward to customer #{$customer->id}: " . $e->getMessage());
+            
+            \Filament\Notifications\Notification::make()
+                ->success()
+                ->title('Kupon Reward Diberikan!')
+                ->body($message)
+                ->send();
         }
+        
+    } catch (\Exception $e) {
+        \Log::error("Failed to give reward to customer #{$customer->id}: " . $e->getMessage());
     }
 }
 

@@ -2,6 +2,126 @@
 @section('title', 'Home - Rizki Laundry')
 @section('content')
 
+<!-- Booking Success Modal -->
+    @if(session('booking_success') && session('booking_details'))
+    <div id="bookingSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: flex;">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onclick="closeBookingModal()"></div>
+
+        <!-- Modal panel -->
+        <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-green-500 to-green-600 px-6 py-4 rounded-t-2xl">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-full bg-white">
+                            <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-white">Booking Berhasil!</h3>
+                    </div>
+                    <button onclick="closeBookingModal()" class="text-white hover:text-gray-200 transition">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="px-6 py-4">
+                @php $details = session('booking_details'); @endphp
+                
+                <!-- Order ID - Highlight -->
+                <div class="mb-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl border-2 border-blue-200 text-center">
+                    <p class="text-xs text-gray-600 mb-1">Order ID</p>
+                    <p class="text-2xl font-bold text-blue-700">{{ $details['order_id'] }}</p>
+                </div>
+
+                <!-- Info Grid -->
+                <div class="space-y-3">
+                    <!-- Customer -->
+                    <div class="flex justify-between items-start pb-3 border-b border-gray-100">
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Customer</p>
+                            <p class="font-semibold text-gray-800">{{ $details['customer_name'] }}</p>
+                        </div>
+                        <span class="text-xs px-3 py-1 rounded-full font-medium {{ $details['customer_type'] === 'Member' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-700' }}">
+                            {{ $details['customer_type'] }}
+                        </span>
+                    </div>
+
+                    <!-- Service -->
+                    <div class="pb-3 border-b border-gray-100">
+                        <p class="text-xs text-gray-500 mb-1">Layanan</p>
+                        <p class="font-semibold text-gray-800">{{ $details['service_name'] }}</p>
+                    </div>
+
+                    <!-- Outlet -->
+                    <div class="pb-3 border-b border-gray-100">
+                        <p class="text-xs text-gray-500 mb-1">Outlet</p>
+                        <p class="font-semibold text-gray-800">{{ $details['outlet_name'] }}</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ $details['outlet_address'] }}</p>
+                    </div>
+
+                    <!-- Delivery & Speed in 2 columns -->
+                    <div class="grid grid-cols-2 gap-3 pb-3 border-b border-gray-100">
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Pengiriman</p>
+                            <p class="font-semibold text-sm text-gray-800">{{ $details['delivery_method'] }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Kecepatan</p>
+                            <p class="font-semibold text-sm text-gray-800">{{ $details['service_speed'] }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Pickup Time -->
+                    <div class="pb-3 border-b border-gray-100">
+                        <p class="text-xs text-gray-500 mb-1">Waktu Penjemputan</p>
+                        <p class="font-semibold text-gray-800">{{ $details['pickup_datetime'] }}</p>
+                    </div>
+
+                    <!-- Estimated Completion - Highlight -->
+                    <div class="p-3 bg-green-50 rounded-lg border border-green-200">
+                        <p class="text-xs text-gray-600 mb-1">⏰ Estimasi Selesai</p>
+                        <p class="font-bold text-green-700">{{ $details['estimated_completion'] }}</p>
+                    </div>
+
+                    @if($details['is_free_service'])
+                    <div class="p-3 bg-yellow-50 border border-yellow-300 rounded-lg">
+                        <p class="text-sm font-semibold text-yellow-800 flex items-center">
+                            <span class="mr-2">🎁</span> Layanan Gratis - Reward Terpakai
+                        </p>
+                    </div>
+                    @endif
+
+                    <!-- Info Message -->
+                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p class="text-xs text-blue-800">
+                            <span class="font-semibold">📱 Informasi:</span> Tim kami akan segera menghubungi Anda untuk konfirmasi.
+                            @if($details['has_courier'])
+                                Kurir sudah ditugaskan.
+                            @endif
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="bg-gray-50 px-6 py-4 rounded-b-2xl flex gap-3">
+                <button onclick="closeBookingModal()" type="button" class="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition">
+                    Tutup
+                </button>
+                <a href="{{ route('orders') }}" class="flex-1 px-4 py-2.5 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition text-center">
+                    Lihat Order
+                </a>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Hero Section -->
     <section id="home" class="gradient-bg text-white overflow-hidden -mt-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 pt-32">
@@ -1178,7 +1298,7 @@
     }
 
     /**
-     * Fungsi Menutup Hasil
+     * Fungsi Menutup Hasil Tracking
      */
     function closeTracking() {
         const resultDiv = document.getElementById('trackingResult');
@@ -1189,6 +1309,19 @@
         
         const input = document.getElementById('trackingInput');
         if (input) input.value = '';
+    }
+
+    /**
+     * Fungsi Menutup Modal Booking Success
+     */
+    function closeBookingModal() {
+        const modal = document.getElementById('bookingSuccessModal');
+        if (modal) {
+            modal.style.display = 'none';
+            modal.classList.remove('show');
+        }
+        console.log('Modal ditutup'); // Debug log
+        return false;
     }
 
     /**
@@ -1207,6 +1340,14 @@
 
         // Set default tab saat halaman load
         switchTab('pickup');
+
+        // Auto close modal booking success setelah 30 detik
+        const bookingModal = document.getElementById('bookingSuccessModal');
+        if (bookingModal && bookingModal.style.display !== 'none') {
+            setTimeout(function() {
+                closeBookingModal();
+            }, 30000);
+        }
     });
 </script>
 @endpush
