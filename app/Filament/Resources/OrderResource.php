@@ -392,6 +392,15 @@ namespace App\Filament\Resources;
                     
                     self::recalculatePricing($set, $get);
                 })
+                
+                ->afterStateHydrated(function (Set $set, $state) {
+                if (!$state) return;
+                $service = Service::find($state);
+                if ($service) {
+                    // Isi kembali field hidden saat form dibuka
+                    self::applyServiceDefaults($set, $service);
+                }
+            })
                 ->columnSpan(2),
 
             // Hidden fields
@@ -910,13 +919,18 @@ namespace App\Filament\Resources;
          * Apply service defaults to form
          */
         protected static function applyServiceDefaults(Set $set, Service $service): void
-        {
-            $set('pricing_type', $service->pricing_type);
-            $set('price_per_kg', $service->price_per_kg);
-            $set('price_per_unit', $service->price_per_unit);
-            $set('weight', null);
-            $set('quantity', null);
-        }
+    {
+        $set('pricing_type', $service->pricing_type);
+        $set('price_per_kg', $service->price_per_kg);
+        $set('price_per_unit', $service->price_per_unit);
+        
+        // Set harga dasar berdasarkan tipe pricing
+        $price = $service->pricing_type === 'kg' 
+            ? $service->price_per_kg 
+            : $service->price_per_unit;
+            
+        $set('price', $price);
+    }
 
         /**
          * Reset coupon fields
@@ -1630,33 +1644,21 @@ namespace App\Filament\Resources;
      * Recalculate subtotal untuk single item di repeater
      */
     protected static function recalculateItemSubtotal(Set $set, Get $get): void
-    {
-        $pricingType = $get('pricing_type');
-        $pricePerKg = (float) ($get('price_per_kg') ?? 0);
-        $pricePerUnit = (float) ($get('price_per_unit') ?? 0);
-        $quantity = (float) ($get('quantity') ?? 0);
-        $weight = (float) ($get('weight') ?? 0);
-
-        $subtotal = self::calculateItemSubtotal([
-            'pricing_type' => $pricingType,
-            'price_per_kg' => $pricePerKg,
-            'price_per_unit' => $pricePerUnit,
-            'quantity' => $quantity,
-            'weight' => $weight,
-        ]);
-        
-        // Set subtotal dan price
-        $set('subtotal', $subtotal);
-        $set('price', self::getItemUnitPrice([
-            'pricing_type' => $pricingType,
-            'price_per_kg' => $pricePerKg,
-            'price_per_unit' => $pricePerUnit,
-        ]));
+{
+    $pricingType = $get('pricing_type');
+    $price = (float) $get('price');
+    
+    if ($pricingType === 'kg') {
+        $weight = (float) $get('weight');
+        $set('subtotal', $weight * $price);
+    } else {
+        $quantity = (int) $get('quantity');
+        $set('subtotal', $quantity * $price);
     }
-
-
-
-
+}
+        /**
+         * Get the pages available for this resource.
+         */
 
         public static function getPages(): array
         {

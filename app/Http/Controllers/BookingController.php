@@ -118,15 +118,15 @@ class BookingController extends Controller
 
             // Simpan OrderItem
             $order->items()->create([
-                'service_id' => $service->id,
-                'pricing_type' => $service->pricing_type ?? 'kg',
-                'price_per_kg' => $service->price_per_kg ?? 0,
-                'price_per_unit' => $service->price_per_unit ?? 0,
-                'quantity' => 0, // Akan diupdate admin setelah timbang
-                'weight' => 0,
-                'price' => 0,
-                'subtotal' => 0,
-            ]);
+            'service_id'     => $service->id,
+            'pricing_type'   => $service->pricing_type,
+            'price_per_kg'   => $service->price_per_kg ?? 0,
+            'price_per_unit' => $service->price_per_unit ?? 0,
+            'quantity'       => 0, 
+            'weight'         => 0,
+            'price'          => $service->pricing_type === 'kg' ? ($service->price_per_kg ?? 0) : ($service->price_per_unit ?? 0),
+            'subtotal'       => 0,
+        ]);
 
             // Buat Tracking Record
             $deliveryMethod = $validated['delivery_method'];

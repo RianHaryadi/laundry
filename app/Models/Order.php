@@ -278,6 +278,14 @@ class Order extends Model
     }
 
     /**
+ * Get the first service from order items
+ */
+public function getServiceAttribute()
+{
+    return $this->orderItems()->first()?->service;
+}
+
+    /**
      * ============================================
      * KUPON REWARD SYSTEM - TAMBAHAN BARU
      * ============================================
