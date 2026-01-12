@@ -4,66 +4,121 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
+use App\Models\Service;
 
 class OrderItem extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
-
-    // ✅ PERBAIKAN: Tutup array $casts dengan benar
-    protected $casts = [
-        'weight'   => 'decimal:2',
-        'price'    => 'decimal:2',
-        'subtotal' => 'decimal:2',
-        'quantity' => 'integer',
-        'price_per_kg' => 'decimal:2',
-        'price_per_unit' => 'decimal:2',
-        'pricing_type' => 'string',
-        'storage_location' => 'string',
-        'photo_proof' => 'array', // ✅ TAMBAHKAN => 'array' dan tutup dengan ];
+    protected $fillable = [
+        'order_id',
+        'service_id',
+        'pricing_type',      // ✅ Sekarang ada di database
+        'price_per_kg',
+        'price_per_unit',
+        'quantity',
+        'weight',
+        'price',
+        'subtotal',
+        'storage_location',
+        'photo_proof',
     ];
 
-    /**
-     * LOGIKA PENENTUAN HARGA & SUBTOTAL
-     * Berjalan otomatis saat save.
-     */
+    protected $casts = [
+        'weight'          => 'decimal:2',
+        'price'           => 'integer',
+        'subtotal'        => 'decimal:2',
+        'quantity'        => 'integer',
+        'price_per_kg'    => 'decimal:2',
+        'price_per_unit'  => 'decimal:2',
+        'pricing_type'    => 'string',
+        'storage_location' => 'string',
+        'photo_proof'     => 'array',
+    ];
+
     protected static function booted()
     {
-        static::saving(function ($item) {
-            // 1. Pastikan Service ID ada
-            if (!$item->service_id) return;
+        static::creating(function ($item) {
+            Log::info('🆕 OrderItem::creating', [
+                'order_id' => $item->order_id,
+                'service_id' => $item->service_id,
+            ]);
 
-            // 2. Ambil data master Service
+            // Validasi service_id
+            if (!$item->service_id) {
+                Log::error('❌ service_id is NULL!');
+                throw new \Exception('service_id tidak boleh kosong');
+            }
+
+            // Load service
             $service = Service::find($item->service_id);
-            if (!$service) return;
+            
+            if (!$service) {
+                Log::error('❌ Service not found', ['service_id' => $item->service_id]);
+                throw new \Exception("Service dengan ID {$item->service_id} tidak ditemukan");
+            }
 
-            // 3. LOGIKA DETEKSI HARGA (KG vs SATUAN)
-            
-            // KASUS A: Jika inputnya BERAT (Weight diisi)
-            if (!empty($item->weight) && $item->weight > 0) {
-                // Ambil harga dari kolom price_per_kg milik service
-                // Jika tidak ada kolom itu, fallback ke base_price
-                $unitPrice = $service->price_per_kg ?? $service->base_price ?? 0;
-                
+            Log::info('✅ Service loaded', [
+                'id' => $service->id,
+                'name' => $service->name,
+                'pricing_type' => $service->pricing_type,
+            ]);
+
+            // Set metadata service (untuk history)
+            $item->pricing_type = $service->pricing_type;
+            $item->price_per_kg = $service->price_per_kg ?? 0;
+            $item->price_per_unit = $service->price_per_unit ?? 0;
+
+            // Hitung harga & subtotal
+            if ($service->pricing_type === 'kg') {
+                $unitPrice = $service->price_per_kg ?? 0;
                 $item->price = $unitPrice;
-                $item->subtotal = $unitPrice * (float) $item->weight;
-            }
-            
-            // KASUS B: Jika inputnya QUANTITY (Qty diisi)
-            elseif (!empty($item->quantity) && $item->quantity > 0) {
-                // Ambih harga dari kolom price_per_unit milik service
-                // Jika tidak ada, fallback ke base_price
-                $unitPrice = $service->price_per_unit ?? $service->base_price ?? 0;
-                
+                $item->subtotal = $unitPrice * max(0, (float) ($item->weight ?? 0));
+            } else {
+                $unitPrice = $service->price_per_unit ?? 0;
                 $item->price = $unitPrice;
-                $item->subtotal = $unitPrice * (int) $item->quantity;
+                $item->subtotal = $unitPrice * max(0, (int) ($item->quantity ?? 0));
             }
-            
-            // KASUS C: Jika data tidak lengkap (untuk jaga-jaga)
-            else {
-                $item->price = 0;
-                $item->subtotal = 0;
+
+            Log::info('💰 Price calculated', [
+                'pricing_type' => $item->pricing_type,
+                'price' => $item->price,
+                'weight' => $item->weight,
+                'quantity' => $item->quantity,
+                'subtotal' => $item->subtotal,
+            ]);
+        });
+
+        static::created(function ($item) {
+            Log::info('✅ OrderItem created successfully!', [
+                'id' => $item->id,
+                'order_id' => $item->order_id,
+                'service_id' => $item->service_id,
+                'pricing_type' => $item->pricing_type,
+            ]);
+        });
+
+        static::updating(function ($item) {
+            // Recalculate jika ada perubahan
+            if ($item->isDirty(['service_id', 'weight', 'quantity'])) {
+                $service = Service::find($item->service_id);
+                
+                if ($service) {
+                    $item->pricing_type = $service->pricing_type;
+                    $item->price_per_kg = $service->price_per_kg ?? 0;
+                    $item->price_per_unit = $service->price_per_unit ?? 0;
+
+                    if ($service->pricing_type === 'kg') {
+                        $unitPrice = $service->price_per_kg ?? 0;
+                        $item->price = $unitPrice;
+                        $item->subtotal = $unitPrice * max(0, (float) ($item->weight ?? 0));
+                    } else {
+                        $unitPrice = $service->price_per_unit ?? 0;
+                        $item->price = $unitPrice;
+                        $item->subtotal = $unitPrice * max(0, (int) ($item->quantity ?? 0));
+                    }
+                }
             }
         });
     }

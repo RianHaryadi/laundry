@@ -41,6 +41,7 @@ namespace App\Filament\Resources;
     use Filament\Tables\Actions\CreateAction;
     use Filament\Tables\Filters\TernaryFilter;
     use Illuminate\Support\Collection;
+    use Illuminate\Support\HtmlString;
 
     class OrderResource extends Resource
     {
@@ -365,7 +366,7 @@ namespace App\Filament\Resources;
 
     protected static function getOrderItemsRepeater(): Repeater
 {
-    return Repeater::make('order_items')
+    return Repeater::make('orderItems')
         ->label('Services 🧺')
         ->relationship('orderItems')
         ->live()
@@ -385,60 +386,71 @@ namespace App\Filament\Resources;
 
                     self::applyServiceDefaults($set, $service);
                     
-                    // Reset input fields
-                    $set('weight', null);
-                    $set('quantity', null);
-                    $set('subtotal', 0);
+                    // ✅ JANGAN RESET JIKA SUDAH ADA DATA
+                    // Hanya reset jika service_id berubah
+                    if ($get('service_id') != $state) {
+                        $set('weight', null);
+                        $set('quantity', null);
+                        $set('subtotal', 0);
+                    }
                     
                     self::recalculatePricing($set, $get);
                 })
                 
-                ->afterStateHydrated(function (Set $set, $state) {
-                if (!$state) return;
-                $service = Service::find($state);
-                if ($service) {
-                    // Isi kembali field hidden saat form dibuka
-                    self::applyServiceDefaults($set, $service);
-                }
-            })
+                ->afterStateHydrated(function (Set $set, Get $get, $state, $record) {
+                    if (!$state) return;
+                    
+                    // ✅ PASTIKAN LOAD SERVICE SAAT EDIT
+                    $service = Service::find($state);
+                    if ($service) {
+                        self::applyServiceDefaults($set, $service);
+                        
+                        // ✅ RECALCULATE JIKA ADA WEIGHT/QUANTITY
+                        if ($get('weight') > 0 || $get('quantity') > 0) {
+                            self::recalculateItemSubtotal($set, $get);
+                        }
+                    }
+                })
                 ->columnSpan(2),
 
-            // Hidden fields
+            // ✅ PASTIKAN DEHYDRATED (TERSIMPAN KE DATABASE)
             Hidden::make('pricing_type')->dehydrated(),
             Hidden::make('price_per_kg')->dehydrated(),
             Hidden::make('price_per_unit')->dehydrated(),
-            Hidden::make('price')->default(0)->dehydrated(),
-            Hidden::make('subtotal')->default(0)->dehydrated(),
+            Hidden::make('price')->dehydrated(),
+            Hidden::make('subtotal')->dehydrated(),
 
-            // WEIGHT FIELD - untuk pricing KG
+            // WEIGHT FIELD
             TextInput::make('weight')
                 ->label('Weight (KG)')
                 ->numeric()
-                ->minValue(0.1)
+                ->minValue(0)
                 ->step(0.1)
-                ->default(null)
-                ->required(fn (Get $get): bool => $get('pricing_type') === self::PRICING_TYPE_KG)
-                ->visible(fn (Get $get): bool => $get('pricing_type') === self::PRICING_TYPE_KG)
+                ->default(0) // ✅ DEFAULT 0, bukan null
+                ->required(fn (Get $get): bool => $get('pricing_type') === 'kg')
+                ->visible(fn (Get $get): bool => $get('pricing_type') === 'kg')
                 ->live(onBlur: true)
                 ->afterStateUpdated(function (Set $set, Get $get, $state) {
                     self::recalculateItemSubtotal($set, $get);
                     self::recalculatePricing($set, $get);
                 })
+                ->helperText('Isi setelah barang ditimbang') // ✅ HELPER TEXT
                 ->columnSpan(1),
 
-            // QUANTITY FIELD - untuk pricing UNIT
+            // QUANTITY FIELD
             TextInput::make('quantity')
                 ->label('Quantity')
                 ->numeric()
-                ->minValue(1)
-                ->default(null)
-                ->required(fn (Get $get): bool => $get('pricing_type') === self::PRICING_TYPE_UNIT)
-                ->visible(fn (Get $get): bool => $get('pricing_type') === self::PRICING_TYPE_UNIT)
+                ->minValue(0)
+                ->default(0) // ✅ DEFAULT 0, bukan null
+                ->required(fn (Get $get): bool => $get('pricing_type') === 'unit')
+                ->visible(fn (Get $get): bool => $get('pricing_type') === 'unit')
                 ->live(onBlur: true)
                 ->afterStateUpdated(function (Set $set, Get $get, $state) {
                     self::recalculateItemSubtotal($set, $get);
                     self::recalculatePricing($set, $get);
                 })
+                ->helperText('Isi setelah barang dihitung') // ✅ HELPER TEXT
                 ->columnSpan(1),
 
             Placeholder::make('subtotal_display')
@@ -446,9 +458,12 @@ namespace App\Filament\Resources;
                 ->content(function (Get $get) {
                     $subtotal = (float) ($get('subtotal') ?? 0);
                     
-                    return $subtotal > 0 
-                        ? "Rp " . number_format($subtotal, 0, ',', '.') 
-                        : "Rp 0";
+                    // ✅ TAMPILKAN "BELUM DITIMBANG" JIKA MASIH 0
+                    if ($subtotal <= 0) {
+                        return new HtmlString('<span class="text-gray-400 italic">Belum ditimbang</span>');
+                    }
+                    
+                    return "Rp " . number_format($subtotal, 0, ',', '.');
                 })
                 ->columnSpan(1),
         ])
@@ -456,6 +471,7 @@ namespace App\Filament\Resources;
         ->minItems(1)
         ->defaultItems(1)
         ->addActionLabel('Add Service')
+        ->reorderable(false) // ✅ DISABLE REORDER UNTUK STABILITAS
         ->afterStateUpdated(fn (Set $set, Get $get) => self::recalculatePricing($set, $get))
         ->columnSpanFull();
 }
@@ -918,19 +934,21 @@ namespace App\Filament\Resources;
         /**
          * Apply service defaults to form
          */
-        protected static function applyServiceDefaults(Set $set, Service $service): void
-    {
-        $set('pricing_type', $service->pricing_type);
-        $set('price_per_kg', $service->price_per_kg);
-        $set('price_per_unit', $service->price_per_unit);
-        
-        // Set harga dasar berdasarkan tipe pricing
-        $price = $service->pricing_type === 'kg' 
-            ? $service->price_per_kg 
-            : $service->price_per_unit;
-            
-        $set('price', $price);
-    }
+        private static function applyServiceDefaults(Set $set, Service $service): void
+{
+    $set('pricing_type', $service->pricing_type);
+    $set('price_per_kg', $service->price_per_kg ?? 0);
+    $set('price_per_unit', $service->price_per_unit ?? 0);
+    
+    // ✅ SET PRICE SESUAI PRICING TYPE
+    $price = $service->pricing_type === 'kg' 
+        ? ($service->price_per_kg ?? 0) 
+        : ($service->price_per_unit ?? 0);
+    
+    $set('price', $price);
+}
+
+
 
         /**
          * Reset coupon fields
@@ -1643,18 +1661,20 @@ namespace App\Filament\Resources;
         /**
      * Recalculate subtotal untuk single item di repeater
      */
-    protected static function recalculateItemSubtotal(Set $set, Get $get): void
+private static function recalculateItemSubtotal(Set $set, Get $get): void
 {
     $pricingType = $get('pricing_type');
-    $price = (float) $get('price');
+    $price = (float) ($get('price') ?? 0);
     
     if ($pricingType === 'kg') {
-        $weight = (float) $get('weight');
-        $set('subtotal', $weight * $price);
+        $weight = (float) ($get('weight') ?? 0);
+        $subtotal = $price * $weight;
     } else {
-        $quantity = (int) $get('quantity');
-        $set('subtotal', $quantity * $price);
+        $quantity = (int) ($get('quantity') ?? 0);
+        $subtotal = $price * $quantity;
     }
+    
+    $set('subtotal', round($subtotal, 2));
 }
         /**
          * Get the pages available for this resource.

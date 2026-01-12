@@ -650,12 +650,12 @@
         
         // UPDATE: Jangan paksa pilih service pertama jika sudah ada yang ter-checked (Auto-Select URL)
         const currentCheckedService = document.querySelector('input[name="service_id"]:checked');
-        if (!currentCheckedService) {
-            const firstService = document.querySelector('input[name="service_id"]');
-            if (firstService) firstService.checked = true;
-        }
-        
-        updateSummary();
+    if (!currentCheckedService) {
+        const firstService = document.querySelector('input[name="service_id"]');
+        if (firstService) firstService.checked = true;
+    }
+    
+    updateSummary();
     });
 </script>
 @endsection
