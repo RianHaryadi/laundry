@@ -103,17 +103,44 @@ class BookingController extends Controller
                 $order->guest_phone = $validated['phone'];
                 $order->guest_address = $validated['address'];
             }
+            
+            // Set initial prices (akan dihitung ulang oleh boot method)
+            $order->base_price = 0;
+            $order->total_price = 0;
+            $order->final_price = 0;
+            
             $order->save();
 
-            // Simpan Item
+            // ✅ PERBAIKAN UTAMA: Simpan ORDER ITEM dengan DATA LENGKAP
             $order->items()->create([
                 'service_id' => $service->id,
-                'quantity' => 0, // Akan diupdate admin setelah timbang
-                'weight' => 0,
+                
+                // ✅ CRITICAL: Simpan pricing_type dari Service
+                'pricing_type' => $service->pricing_type, // 'kg' atau 'unit'
+                
+                // ✅ Simpan harga referensi dari Service
+                'price_per_kg' => $service->price_per_kg ?? 0,
+                'price_per_unit' => $service->price_per_unit ?? 0,
+                
+                // ✅ Quantity dan weight NULL (akan diisi admin setelah timbang)
+                'quantity' => null,
+                'weight' => null,
+                
+                // ✅ Price dan subtotal 0 (belum ada input qty/weight)
                 'price' => 0,
+                'subtotal' => 0,
             ]);
 
-            // Buat Tracking Record
+            // Log untuk debugging
+            Log::info('Order item created from booking', [
+                'order_id' => $order->id,
+                'service_id' => $service->id,
+                'pricing_type' => $service->pricing_type,
+                'price_per_kg' => $service->price_per_kg,
+                'price_per_unit' => $service->price_per_unit,
+            ]);
+
+            // Buat Tracking Record jika perlu pickup
             if (in_array($order->delivery_method, ['pickup', 'pickup_delivery'])) {
                 $order->trackings()->create([
                     'type' => 'pickup',
@@ -126,7 +153,7 @@ class BookingController extends Controller
 
             $bookingDetails = $this->generateBookingDetails($order, $service, $outlet, $validated);
 
-            // Redirect ke HOME dengan membawa data session
+            // Redirect ke HOME dengan session data
             return redirect()->route('home')->with([
                 'booking_success' => true,
                 'booking_details' => $bookingDetails
@@ -134,7 +161,9 @@ class BookingController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Booking Error: ' . $e->getMessage());
-            return back()->withErrors(['error' => 'Gagal membuat pesanan.'])->withInput();
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+            
+            return back()->withErrors(['error' => 'Gagal membuat pesanan. Error: ' . $e->getMessage()])->withInput();
         }
     }
 
@@ -185,41 +214,6 @@ class BookingController extends Controller
         ];
     }
 
-    private function createTrackingRecords(Order $order, string $deliveryMethod, ?User $courier, string $address): void
-    {
-        $pickupTime = Carbon::parse($order->pickup_time);
-        
-        if (in_array($deliveryMethod, ['pickup', 'pickup_delivery'])) {
-            Tracking::create([
-                'order_id' => $order->id,
-                'courier_id' => $courier?->id,
-                'type' => 'pickup',
-                'status' => 'pending',
-                'scheduled_time' => $pickupTime,
-                'actual_time' => null,
-                'pickup_address' => $address,
-                'delivery_address' => null,
-                'notes' => 'Penjemputan laundry dari customer - Menunggu konfirmasi',
-            ]);
-        }
-
-        if (in_array($deliveryMethod, ['delivery', 'pickup_delivery'])) {
-            $estimatedDelivery = $this->calculateEstimatedDelivery($pickupTime, $order->service_speed);
-            
-            Tracking::create([
-                'order_id' => $order->id,
-                'courier_id' => $courier?->id,
-                'type' => 'delivery',
-                'status' => 'pending',
-                'scheduled_time' => $estimatedDelivery,
-                'actual_time' => null,
-                'pickup_address' => null,
-                'delivery_address' => $address,
-                'notes' => 'Pengiriman laundry ke customer - Menunggu proses selesai',
-            ]);
-        }
-    }
-
     private function calculateEstimatedDelivery(Carbon $pickupTime, string $serviceSpeed): Carbon
     {
         return match ($serviceSpeed) {
@@ -254,4 +248,4 @@ class BookingController extends Controller
         if (str_contains($name, 'sepatu')) return 'from-yellow-400 to-yellow-600';
         return 'from-indigo-400 to-indigo-600';
     }
-}
+}   
