@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Rizki Laundry')</title>
+    <title>@yield('title', 'Risky Laundry')</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -95,7 +95,7 @@
                         <i class="fas fa-tshirt text-white text-lg"></i>
                     </div>
                     <span class="text-xl font-bold text-gray-800">
-                        Rizki<span class="gradient-text">Laundry</span>
+                        Risky<span class="gradient-text">Laundry</span>
                     </span>
                 </a>
                 
@@ -233,7 +233,7 @@
                         <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
                             <i class="fas fa-tshirt text-white text-lg"></i>
                         </div>
-                        <span class="text-xl font-bold">Rizki<span class="text-blue-400">Laundry</span></span>
+                        <span class="text-xl font-bold">Risky<span class="text-blue-400">Laundry</span></span>
                     </div>
                     <p class="text-gray-400 text-sm mb-4">Professional laundry service at your doorstep. Making laundry day the easiest day of your week.</p>
                     <div class="flex space-x-3">
@@ -289,14 +289,14 @@
                         </li>
                         <li class="flex items-center">
                             <i class="fas fa-envelope text-blue-400 mr-2"></i>
-                            <span class="text-gray-400">hello@rizkilaundry.com</span>
+                            <span class="text-gray-400">hello@Riskyaundry.com</span>
                         </li>
                     </ul>
                 </div>
             </div>
             
             <div class="pt-6 border-t border-gray-800 text-center text-sm text-gray-400">
-                <p>&copy; 2024 Rizki Laundry. All rights reserved. | 
+                <p>&copy; 2024 Risky Laundry. All rights reserved. | 
                    <a href="#" class="hover:text-white transition">Privacy Policy</a> | 
                    <a href="#" class="hover:text-white transition">Terms of Service</a>
                 </p>

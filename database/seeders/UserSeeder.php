@@ -25,7 +25,7 @@ class UserSeeder extends Seeder
             // ========== OWNER ==========
             [
                 'name' => 'Rizki Maulana',
-                'email' => 'owner.rizkilaundry@gmail.com',
+                'email' => 'owner.Riskyaundry@gmail.com',
                 'password' => Hash::make('password'),
                 'role' => 'owner',
                 'outlet_id' => null,

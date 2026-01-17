@@ -297,7 +297,7 @@
                         </li>
                         <li class="flex items-center">
                             <i class="fas fa-envelope text-blue-400 mr-2"></i>
-                            <span class="text-gray-400">hello@rizkilaundry.com</span>
+                            <span class="text-gray-400">hello@Riskyaundry.com</span>
                         </li>
                     </ul>
                 </div>

@@ -2,514 +2,273 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\MachineResource\Pages;
-use App\Filament\Resources\MachineResource\RelationManagers;
-use App\Models\Machine;
+use App\Filament\Resources\OrderItemResource\Pages;
+use App\Models\OrderItem;
+use App\Models\Order;
+use App\Models\Service; // Pastikan model Service di-import
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
-
-class MachineResource extends Resource
+class OrderItemResource extends Resource
 {
-    protected static ?string $model = Machine::class;
-
-    protected static ?string $navigationIcon = 'heroicon-o-cpu-chip';
-
-    protected static ?string $navigationGroup = 'Machine Management';
-
-    protected static ?string $navigationLabel = 'Machines';
-
-    protected static ?string $modelLabel = 'Machine';
-
-    protected static ?string $pluralModelLabel = 'Machines';
-
-    protected static ?int $navigationSort = 1;
+    protected static ?string $model = OrderItem::class;
+    protected static ?string $navigationIcon = 'heroicon-o-list-bullet';
+    protected static ?string $navigationGroup = 'Order Management';
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Basic Information')
+                Forms\Components\Section::make('Order Selection')
                     ->schema([
-                        Forms\Components\Select::make('outlet_id')
-                            ->label('Outlet')
-                            ->relationship('outlet', 'name')
+                        Forms\Components\Select::make('order_id')
+                            ->label('Order')
+                            ->relationship('order', 'id')
                             ->searchable()
                             ->preload()
                             ->required()
-                            ->placeholder('Select outlet')
-                            ->helperText('Select the outlet where this machine is located')
-                            ->createOptionForm([
-                                Forms\Components\TextInput::make('name')
-                                    ->required()
-                                    ->maxLength(255),
-                                Forms\Components\TextInput::make('location')
-                                    ->maxLength(255),
-                                Forms\Components\Textarea::make('address')
-                                    ->rows(3),
-                            ]),
+                            ->getOptionLabelFromRecordUsing(fn ($record) => 
+                                '#' . str_pad($record->id, 6, '0', STR_PAD_LEFT) . 
+                                ' - ' . ($record->customer?->name ?? 'Unknown Customer')
+                            )
+                            ->reactive()
+                            ->afterStateUpdated(function (Forms\Set $set, ?string $state) {
+                                if ($state) {
+                                    $order = Order::with(['service', 'customer'])->find($state);
+                                    if ($order) {
+                                        // Auto-fill service jika ada di order utama
+                                        $set('service_id', $order->service_id);
+                                        
+                                        // Panggil fungsi hitung ulang (bawah) untuk update harga
+                                        self::updateTotals($set, 1, $order->service?->base_price ?? 0);
 
-                        Forms\Components\TextInput::make('name')
-                            ->label('Machine Name')
-                            ->required()
-                            ->maxLength(255)
-                            ->placeholder('e.g., Espresso Machine 01')
-                            ->helperText('Unique name to identify this machine'),
+                                        Notification::make()
+                                            ->title('Order Information')
+                                            ->body("Customer: " . ($order->customer?->name ?? '-') . " | Service: " . ($order->service?->name ?? '-'))
+                                            ->info()
+                                            ->send();
+                                    }
+                                }
+                            }),
 
-                        Forms\Components\TextInput::make('serial_number')
-                            ->label('Serial Number')
-                            ->maxLength(255)
-                            ->unique(ignoreRecord: true)
-                            ->placeholder('e.g., SN-2024-001')
-                            ->helperText('Manufacturer serial number'),
+                        Forms\Components\Placeholder::make('order_info')
+                            ->label('Order Details')
+                            ->content(function (Forms\Get $get): string {
+                                if ($get('order_id')) {
+                                    $order = Order::with(['customer', 'service', 'outlet'])->find($get('order_id'));
+                                    if ($order) {
+                                        return new \Illuminate\Support\HtmlString(
+                                            '<div class="space-y-1 text-sm">' .
+                                            '<div><strong>Customer:</strong> ' . ($order->customer?->name ?? '-') . '</div>' .
+                                            '<div><strong>Service:</strong> ' . ($order->service?->name ?? '-') . '</div>' .
+                                            '<div><strong>Total Order:</strong> Rp ' . number_format($order->total_price ?? 0, 0, ',', '.') . '</div>' .
+                                            '</div>'
+                                        );
+                                    }
+                                }
+                                return 'Select an order to see details';
+                            })
+                            ->columnSpanFull(),
+                    ])->columns(1),
 
-                        Forms\Components\Select::make('type')
-                            ->label('Machine Type')
-                            ->options([
-                                'washer' => 'Washing Machine',
-                                'dryer' => 'Dryer',
-                                'ironer' => 'Ironer / Press',
-                                'boiler' => 'Boiler / Steam Generator',
-                                'conveyor' => 'Conveyor System',
-                                'packing' => 'Packing Machine',
-                                'other' => 'Other Equipment',
-                            ])
-                            ->required()
-                            ->native(false)
-                            ->searchable()
-                            ->placeholder('Select machine type'),
-
-                        Forms\Components\Select::make('status')
-                            ->label('Status')
-                            ->options([
-                                'operational' => 'Operational',
-                                'maintenance' => 'Under Maintenance',
-                                'broken' => 'Broken',
-                                'retired' => 'Retired',
-                            ])
-                            ->default('operational')
-                            ->required()
-                            ->native(false)
-                            ->placeholder('Select status'),
-
-                        Forms\Components\TextInput::make('manufacturer')
-                            ->label('Manufacturer')
-                            ->maxLength(255)
-                            ->placeholder('e.g., La Marzocco'),
-
-                        Forms\Components\TextInput::make('model')
-                            ->label('Model')
-                            ->maxLength(255)
-                            ->placeholder('e.g., Linea PB'),
-                    ])
-                    ->columns(2),
-
-                Forms\Components\Section::make('Purchase & Warranty Information')
+                Forms\Components\Section::make('Service & Pricing')
                     ->schema([
-                        Forms\Components\DatePicker::make('purchase_date')
-                            ->label('Purchase Date')
-                            ->native(false)
-                            ->placeholder('Select date'),
+                        // SERVICE SELECTION
+                        Forms\Components\Select::make('service_id')
+                            ->label('Service')
+                            ->relationship('service', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->reactive()
+                            ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, ?string $state) {
+                                if ($state) {
+                                    $service = Service::find($state);
+                                    if ($service) {
+                                        $set('price', $service->base_price);
+                                        // Hitung ulang subtotal saat service berubah
+                                        self::updateTotals($set, $get('quantity'), $service->base_price);
+                                    }
+                                }
+                            }),
 
-                        Forms\Components\TextInput::make('purchase_price')
-                            ->label('Purchase Price')
+                        // QUANTITY
+                        Forms\Components\TextInput::make('quantity')
+                            ->label('Quantity')
+                            ->required()
+                            ->numeric()
+                            ->minValue(1)
+                            ->default(1)
+                            ->live(onBlur: true) // Gunakan live agar langsung update
+                            ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, ?string $state) {
+                                self::updateTotals($set, $state, $get('price'));
+                            }),
+
+                        // WEIGHT
+                        Forms\Components\TextInput::make('weight')
+                            ->label('Weight (kg)')
+                            ->numeric()
+                            ->step(0.1)
+                            ->suffix('kg'),
+
+                        // PRICE
+                        Forms\Components\TextInput::make('price')
+                            ->label('Unit Price')
+                            ->required()
                             ->numeric()
                             ->prefix('Rp')
-                            ->step(1000)
-                            ->minValue(0)
-                            ->placeholder('0'),
-
-                        Forms\Components\DatePicker::make('warranty_until')
-                            ->label('Warranty Until')
-                            ->native(false)
-                            ->placeholder('Select date')
-                            ->after('purchase_date'),
-
-                        Forms\Components\TextInput::make('supplier')
-                            ->label('Supplier')
-                            ->maxLength(255)
-                            ->placeholder('Supplier name'),
-                    ])
-                    ->columns(2)
-                    ->collapsible(),
-
-                Forms\Components\Section::make('Maintenance Information')
-                    ->schema([
-                        Forms\Components\DatePicker::make('last_maintenance')
-                            ->label('Last Maintenance Date')
-                            ->native(false)
-                            ->placeholder('Select date')
-                            ->maxDate(now()),
-
-                        Forms\Components\TextInput::make('maintenance_interval')
-                            ->label('Maintenance Interval (days)')
-                            ->numeric()
-                            ->suffix('days')
-                            ->minValue(1)
-                            ->placeholder('90')
-                            ->helperText('How often should this machine be maintained?'),
-
-                        Forms\Components\Placeholder::make('next_maintenance')
-                            ->label('Next Scheduled Maintenance')
-                            ->content(function (Forms\Get $get): string {
-                                $lastMaintenance = $get('last_maintenance');
-                                $interval = $get('maintenance_interval');
-                        
-                                if ($lastMaintenance && $interval) {
-                                    // Convert interval to integer
-                                    $intervalDays = (int) $interval;
-                                    $nextDate = \Carbon\Carbon::parse($lastMaintenance)->addDays($intervalDays);
-                                    return $nextDate->format('d M Y') . ' (' . $nextDate->diffForHumans() . ')';
-                                }
-                        
-                                return 'Set last maintenance and interval to calculate';
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, ?string $state) {
+                                self::updateTotals($set, $get('quantity'), $state);
                             }),
-                    ])
-                    ->columns(3)
-                    ->collapsible(),
 
-                Forms\Components\Section::make('Additional Information')
-                    ->schema([
-                        Forms\Components\Textarea::make('specifications')
-                            ->label('Specifications')
-                            ->rows(3)
-                            ->placeholder('Technical specifications, capacity, power requirements, etc.')
-                            ->columnSpanFull(),
+                        // SUBTOTAL (Fix: Dehydrated agar tersimpan ke database)
+                        Forms\Components\TextInput::make('subtotal')
+                            ->label('Subtotal')
+                            ->required()
+                            ->numeric()
+                            ->prefix('Rp')
+                            ->readOnly() // ReadOnly lebih baik daripada disabled untuk data yg dikirim
+                            ->dehydrated() // WAJIB: agar nilai dikirim ke controller/database
+                            ->afterStateHydrated(function (Forms\Set $set, Forms\Get $get) {
+                                // Hitung ulang saat form edit dibuka agar tidak kosong
+                                self::updateTotals($set, $get('quantity'), $get('price'));
+                            }),
+                    ])->columns(2),
 
-                        Forms\Components\Textarea::make('notes')
-                            ->label('Notes')
-                            ->rows(3)
-                            ->placeholder('Additional notes, special instructions, etc.')
-                            ->columnSpanFull(),
-                    ])
-                    ->collapsible(),
+                    Forms\Components\Section::make('Additional Info')
+->schema([
+    Forms\Components\TextInput::make('storage_location')
+        ->label('Storage Location')
+        ->placeholder('Rak A1, Rak B2, dll.')
+        ->maxLength(255),
+
+    Forms\Components\FileUpload::make('photo_proof')
+        ->label('Photo Proof')
+        ->disk('public')
+        ->image()
+        ->multiple()
+
+    ])->columns(2),
+
             ]);
+    }
+
+    // Fungsi Pembantu untuk menghitung Subtotal secara konsisten
+    protected static function updateTotals(Forms\Set $set, $quantity, $price)
+    {
+        $qty = (int) ($quantity ?? 1);
+        $prc = (float) ($price ?? 0);
+        $set('subtotal', $qty * $prc);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
-                    ->label('Machine Name')
+                Tables\Columns\TextColumn::make('order.id')
+                    ->label('Order ID')
                     ->searchable()
                     ->sortable()
-                    ->weight('medium')
-                    ->icon('heroicon-m-cpu-chip')
-                    ->description(fn (Machine $record): ?string => $record->serial_number),
+                    ->formatStateUsing(fn ($state) => '#' . str_pad($state, 6, '0', STR_PAD_LEFT))
+                    ->color('primary'),
 
-                Tables\Columns\TextColumn::make('outlet.name')
-                    ->label('Outlet')
-                    ->searchable()
-                    ->sortable()
-                    ->icon('heroicon-m-building-storefront')
-                    ->toggleable(),
-
-                Tables\Columns\BadgeColumn::make('type')
-                    ->label('Type')
-                    ->colors([
-                        'primary' => 'washer',
-                        'success' => 'dryer',
-                        'warning' => 'ironer',
-                        'danger' => 'boiler',
-                        'info' => 'conveyor',
-                        'secondary' => 'packing',
-                        'gray' => 'other',
-                    ])
-                    ->icons([
-                        'heroicon-o-arrow-path' => 'washer',
-                        'heroicon-o-fire' => 'dryer',
-                        'heroicon-o-sparkles' => 'ironer',
-                        'heroicon-o-bolt' => 'boiler',
-                        'heroicon-o-arrows-right-left' => 'conveyor',
-                        'heroicon-o-archive-box' => 'packing',
-                        'heroicon-o-wrench' => 'other',
-                    ])
-                    ->formatStateUsing(fn (?string $state): string => 
-                        match($state) {
-                            'washer' => 'Washing Machine',
-                            'dryer' => 'Dryer',
-                            'ironer' => 'Ironer / Press',
-                            'boiler' => 'Boiler / Steam',
-                            'conveyor' => 'Conveyor',
-                            'packing' => 'Packing',
-                            'other' => 'Other',
-                            default => 'N/A'
-                        }
-                    )
-                    ->sortable()
-                    ->searchable(),
-
-                Tables\Columns\BadgeColumn::make('status')
-                    ->label('Status')
-                    ->colors([
-                        'success' => 'operational',
-                        'warning' => 'maintenance',
-                        'danger' => 'broken',
-                        'secondary' => 'retired',
-                    ])
-                    ->icons([
-                        'heroicon-o-check-circle' => 'operational',
-                        'heroicon-o-wrench' => 'maintenance',
-                        'heroicon-o-x-circle' => 'broken',
-                        'heroicon-o-archive-box' => 'retired',
-                    ])
-                    ->formatStateUsing(fn (?string $state): string => 
-                        $state ? ucfirst($state) : 'N/A'
-                    )
-                    ->sortable()
-                    ->searchable(),
-
-                Tables\Columns\TextColumn::make('manufacturer')
-                    ->label('Manufacturer')
-                    ->searchable()
-                    ->toggleable()
-                    ->placeholder('N/A'),
-
-                Tables\Columns\TextColumn::make('model')
-                    ->label('Model')
-                    ->searchable()
-                    ->toggleable()
-                    ->placeholder('N/A'),
-
-                Tables\Columns\TextColumn::make('last_maintenance')
-                    ->label('Last Maintenance')
-                    ->date('d M Y')
-                    ->sortable()
-                    ->icon('heroicon-m-wrench-screwdriver')
-                    ->description(fn ($record): ?string => 
-                        $record->last_maintenance ? $record->last_maintenance->diffForHumans() : null
-                    )
-                    ->placeholder('Never')
-                    ->color(fn ($record): string => 
-                        $record->last_maintenance && $record->last_maintenance->diffInDays(now()) > 90 
-                            ? 'danger' 
-                            : 'success'
-                    ),
-
-                Tables\Columns\TextColumn::make('next_maintenance')
-                        ->label('Next Maintenance')
-                        ->getStateUsing(fn (Machine $record): ?string => 
-                            $record->last_maintenance && $record->maintenance_interval
-                                ? $record->last_maintenance->copy()->addDays((int) $record->maintenance_interval)->format('d M Y')
-                                : null
+                Tables\Columns\TextColumn::make('order.customer.name')
+                ->label('Customer')
+                ->default(fn ($record): string => $record->order->guest_name ?? 'Guest')
+                ->sortable()
+                ->searchable(query: function (Builder $query, string $search): Builder {
+                    return $query->whereHas('order', function (Builder $q) use ($search) {
+                        $q->whereHas('customer', fn (Builder $subQ): Builder =>
+                            $subQ->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%")
+                                ->orWhere('phone', 'like', "%{$search}%")
                         )
-                        ->icon('heroicon-m-calendar-days')
-                        ->color('warning')
-                        ->placeholder('Not scheduled')
-                        ->toggleable(),
+                        ->orWhere('guest_name', 'like', "%{$search}%")
+                        ->orWhere('guest_phone', 'like', "%{$search}%");
+                    });
+                })
+                ->formatStateUsing(function ($record, $state): string {
+                    // Cek tipe customer dari order parent
+                    if ($record->order->customer_type === 'member' && $state) {
+                        return $state; // Tampilkan nama member
+                    }
+                    return $record->order->guest_name ?? 'Guest'; // Tampilkan nama guest
+                })
+                ->description(function ($record): ?string {
+                    // Tampilkan phone dan badge tipe customer
+                    $phone = $record->order->customer_type === 'member' 
+                        ? ($record->order->customer?->phone ?? 'No Phone')
+                        : ($record->order->guest_phone ?? 'No Phone');
+                    
+                    $type = $record->order->customer_type === 'member' ? '👤 Member' : '🚶 Walk-in';
+                    
+                    return "{$phone} • {$type}";
+                })
+                ->icon(fn ($record): string =>
+                    $record->order->customer_type === 'member' ? 'heroicon-o-user-circle' : 'heroicon-o-user'
+                )
+                ->iconColor(fn ($record): string =>
+                    $record->order->customer_type === 'member' ? 'warning' : 'gray'
+                )
+                ->tooltip(fn ($record): string =>
+                    $record->order->customer_type === 'member' ? '⭐ Member Customer' : '🚶 Guest Customer'
+                )
+                ->wrap(),
 
-                Tables\Columns\TextColumn::make('purchase_price')
-                    ->label('Purchase Price')
-                    ->money('IDR')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->placeholder('N/A'),
-
-                Tables\Columns\TextColumn::make('maintenances_count')
-                    ->label('Maintenance Count')
-                    ->counts('maintenances')
-                    ->sortable()
+                Tables\Columns\TextColumn::make('service.name')
+                    ->label('Service')
                     ->badge()
                     ->color('info')
-                    ->toggleable(),
+                    ->placeholder('No Service'),
+
+                Tables\Columns\TextColumn::make('quantity')
+                    ->label('Qty')
+                    ->alignCenter()
+                    ->badge()
+                    ->color('warning'),
+
+                Tables\Columns\TextColumn::make('price')
+                    ->label('Price')
+                    ->money('IDR')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('subtotal')
+                    ->label('Subtotal')
+                    ->money('IDR')
+                    ->sortable()
+                    ->weight('bold')
+                    ->color('success')
+                    ->placeholder('Rp 0'), // Menangani jika kosong di tabel
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created')
-                    ->dateTime('d M Y, H:i')
+                    ->dateTime('d M Y')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->description(fn ($record): string => $record->created_at->diffForHumans()),
-
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->label('Updated')
-                    ->dateTime('d M Y, H:i')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->since(),
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->filters([
-                Tables\Filters\SelectFilter::make('outlet')
-                    ->relationship('outlet', 'name')
-                    ->searchable()
-                    ->preload()
-                    ->multiple()
-                    ->label('Filter by Outlet'),
-
-                Tables\Filters\SelectFilter::make('type')
-                    ->options([
-                        'washer' => 'Washing Machine',
-                        'dryer' => 'Dryer',
-                        'ironer' => 'Ironer / Press',
-                        'boiler' => 'Boiler / Steam Generator',
-                        'conveyor' => 'Conveyor System',
-                        'packing' => 'Packing Machine',
-                        'other' => 'Other Equipment',
-                    ])
-                    ->multiple()
-                    ->label('Filter by Type'),
-
-                Tables\Filters\SelectFilter::make('status')
-                    ->options([
-                        'operational' => 'Operational',
-                        'maintenance' => 'Under Maintenance',
-                        'broken' => 'Broken',
-                        'retired' => 'Retired',
-                    ])
-                    ->multiple()
-                    ->label('Filter by Status'),
-
-                Tables\Filters\Filter::make('needs_maintenance')
-                    ->label('Needs Maintenance')
-                    ->query(fn (Builder $query): Builder => 
-                        $query->whereNotNull('last_maintenance')
-                            ->whereNotNull('maintenance_interval')
-                            ->whereRaw('DATE_ADD(last_maintenance, INTERVAL maintenance_interval DAY) < NOW()')
-                    )
-                    ->toggle(),
-
-                Tables\Filters\Filter::make('under_warranty')
-                    ->label('Under Warranty')
-                    ->query(fn (Builder $query): Builder => 
-                        $query->whereNotNull('warranty_until')
-                            ->where('warranty_until', '>=', now())
-                    )
-                    ->toggle(),
-
-                Tables\Filters\TernaryFilter::make('has_serial_number')
-                    ->label('Has Serial Number')
-                    ->placeholder('All machines')
-                    ->trueLabel('With serial number')
-                    ->falseLabel('Without serial number')
-                    ->queries(
-                        true: fn (Builder $query) => $query->whereNotNull('serial_number'),
-                        false: fn (Builder $query) => $query->whereNull('serial_number'),
-                    ),
-            ])
+            ->defaultSort('created_at', 'desc')
             ->actions([
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-
-                Tables\Actions\Action::make('schedule_maintenance')
-                    ->label('Schedule Maintenance')
-                    ->icon('heroicon-m-wrench-screwdriver')
-                    ->color('warning')
-                    ->url(fn (Machine $record): string => 
-                        route('filament.admin.resources.maintenances.create', [
-                            'machine_id' => $record->id
-                        ])
-                    )
-                    ->visible(fn (Machine $record) => $record->status === 'operational'),
-
-                Tables\Actions\Action::make('update_status')
-                    ->label('Update Status')
-                    ->icon('heroicon-m-arrow-path')
-                    ->color('info')
-                    ->form([
-                        Forms\Components\Select::make('status')
-                            ->label('New Status')
-                            ->options([
-                                'operational' => 'Operational',
-                                'maintenance' => 'Under Maintenance',
-                                'broken' => 'Broken',
-                                'retired' => 'Retired',
-                            ])
-                            ->required()
-                            ->native(false),
-                    ])
-                    ->action(fn (Machine $record, array $data) => $record->update($data))
-                    ->successNotificationTitle('Status updated successfully'),
-
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
-                        ->requiresConfirmation(),
-
-                    Tables\Actions\BulkAction::make('update_status')
-                        ->label('Update Status')
-                        ->icon('heroicon-m-arrow-path')
-                        ->color('warning')
-                        ->form([
-                            Forms\Components\Select::make('status')
-                                ->label('New Status')
-                                ->options([
-                                    'operational' => 'Operational',
-                                    'maintenance' => 'Under Maintenance',
-                                    'broken' => 'Broken',
-                                    'retired' => 'Retired',
-                                ])
-                                ->required()
-                                ->native(false),
-                        ])
-                        ->action(fn (array $data, $records) => $records->each->update(['status' => $data['status']]))
-                        ->deselectRecordsAfterCompletion()
-                        ->requiresConfirmation(),
-
-                    Tables\Actions\BulkAction::make('assign_outlet')
-                        ->label('Assign to Outlet')
-                        ->icon('heroicon-m-building-storefront')
-                        ->color('info')
-                        ->form([
-                            Forms\Components\Select::make('outlet_id')
-                                ->label('Outlet')
-                                ->relationship('outlet', 'name')
-                                ->searchable()
-                                ->preload()
-                                ->required(),
-                        ])
-                        ->action(fn (array $data, $records) => $records->each->update(['outlet_id' => $data['outlet_id']]))
-                        ->deselectRecordsAfterCompletion(),
+                    Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ])
-            ->emptyStateActions([
-                Tables\Actions\CreateAction::make()
-                    ->icon('heroicon-o-plus')
-                    ->label('Add Machine'),
-            ])
-            ->emptyStateHeading('No machines yet')
-            ->emptyStateDescription('Add your first machine to start tracking equipment.')
-            ->emptyStateIcon('heroicon-o-cpu-chip')
-            ->defaultSort('name', 'asc')
-            ->striped()
-            ->poll('60s');
+            ]);
     }
-
-    public static function getRelations(): array
-    {
-        return [
-            RelationManagers\MaintenancesRelationManager::class,
-        ];
-    }
-
+    
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListMachines::route('/'),
-            'create' => Pages\CreateMachine::route('/create'),
-            'edit' => Pages\EditMachine::route('/{record}/edit'),
+            'index' => Pages\ListOrderItems::route('/'),
+            'create' => Pages\CreateOrderItem::route('/create'),
+            'edit' => Pages\EditOrderItem::route('/{record}/edit'),
         ];
-    }
-
-    public static function getNavigationBadge(): ?string
-    {
-        $totalCount = static::getModel()::count();
-        return $totalCount > 0 ? (string) $totalCount : null;
-    }
-
-    public static function getNavigationBadgeColor(): ?string
-    {
-        $brokenCount = static::getModel()::where('status', 'broken')->count();
-        $maintenanceCount = static::getModel()::where('status', 'maintenance')->count();
-        
-        return match (true) {
-            $brokenCount > 0 => 'danger',      
-            $maintenanceCount > 0 => 'warning',
-            default => 'success',
-        };
     }
 }
